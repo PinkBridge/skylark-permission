@@ -80,3 +80,22 @@ ON DUPLICATE KEY UPDATE
 -- 为 app2 设置重定向 URI
 UPDATE `oauth_client_details` SET `web_server_redirect_uri` = 'http://www.baidu.com' WHERE `client_id` = 'app2';
 
+-- 6. 用户表（简单版本，不需要角色权限）
+CREATE TABLE IF NOT EXISTS `sys_user` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+  `username` VARCHAR(50) NOT NULL COMMENT '用户名',
+  `password` VARCHAR(255) NOT NULL COMMENT '密码',
+  `enabled` TINYINT(1) DEFAULT 1 COMMENT '是否启用：1-启用，0-禁用',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统用户表';
+
+-- 插入示例用户（密码为：1024，使用 NoOpPasswordEncoder 所以存储明文）
+INSERT INTO `sys_user` (`username`, `password`, `enabled`) VALUES 
+('yunai', '1024', 1)
+ON DUPLICATE KEY UPDATE 
+  `password` = VALUES(`password`),
+  `enabled` = VALUES(`enabled`);
+

@@ -1,5 +1,6 @@
 package cn.skylark.permission.oauth2;
 
+import cn.skylark.permission.oauth2.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -8,10 +9,9 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+import javax.annotation.Resource;
 
 /**
  * @author yaomianwei
@@ -21,6 +21,8 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+  @Resource
+  private CustomUserDetailsService customUserDetailsService;
 
   @Override
   @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
@@ -33,23 +35,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     return (NoOpPasswordEncoder) NoOpPasswordEncoder.getInstance();
   }
 
-  /**
-   * UserDetailsService Bean for OAuth2 refresh token support
-   */
-  @Bean
-  @Override
-  public UserDetailsService userDetailsService() {
-    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-    manager.createUser(User.withUsername("yunai")
-            .password("1024")
-            .roles("USER")
-            .build());
-    return manager;
-  }
-
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    auth.inMemoryAuthentication().passwordEncoder(passwordEncoder()).withUser("yunai").password("1024").roles("USER");
+    // 使用数据库中的用户信息进行认证
+    auth.userDetailsService(customUserDetailsService)
+            .passwordEncoder(passwordEncoder());
   }
 
   @Override

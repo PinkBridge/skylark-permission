@@ -12,3 +12,9 @@ spring:
 
 oauth:
   signingKey: 374SJADK&*@!SHSAshhsdevops(90)
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: cn.skylark.permission.oauth2.entity
+  configuration:
+    map-underscore-to-camel-case: true

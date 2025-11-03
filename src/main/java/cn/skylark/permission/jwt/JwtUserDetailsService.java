@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * @author yaomianwei
  * @since 17:21 2025/10/31
  **/
-@Component
+//@Component
 public class JwtUserDetailsService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
