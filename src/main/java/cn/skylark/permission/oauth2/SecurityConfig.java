@@ -1,14 +1,16 @@
 package cn.skylark.permission.oauth2;
 
-import cn.skylark.permission.oauth2.service.CustomUserDetailsService;
+import cn.skylark.permission.oauth2.handler.CustomLogoutSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 
 import javax.annotation.Resource;
@@ -19,10 +21,15 @@ import javax.annotation.Resource;
  **/
 @Configuration
 @EnableWebSecurity
+@SuppressWarnings("deprecation")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Resource
-  private CustomUserDetailsService customUserDetailsService;
+  private UserDetailsService customUserDetailsService;
+  
+  @Resource
+  @Lazy
+  private CustomLogoutSuccessHandler customLogoutSuccessHandler;
 
   @Override
   @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
@@ -37,9 +44,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    // 使用数据库中的用户信息进行认证
-    auth.userDetailsService(customUserDetailsService)
-            .passwordEncoder(passwordEncoder());
+    // use user information in database for authentication
+    auth.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder());
   }
 
   @Override
@@ -54,6 +60,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .and()
             // allow use formLogin
             .formLogin()
-            .defaultSuccessUrl("/", false);
+            .defaultSuccessUrl("/", false)
+            .and()
+            .logout()
+            .logoutUrl("/oauth/logout")
+            .logoutSuccessHandler(customLogoutSuccessHandler)
+            .permitAll();
   }
 }

@@ -12,33 +12,33 @@ import java.time.LocalDateTime;
  */
 @Data
 public class SysUser {
-    /**
-     * 用户ID
-     */
-    private Long id;
+  /**
+   * 用户ID
+   */
+  private Long id;
 
-    /**
-     * 用户名
-     */
-    private String username;
+  /**
+   * 用户名
+   */
+  private String username;
 
-    /**
-     * 密码
-     */
-    private String password;
+  /**
+   * 密码
+   */
+  private String password;
 
-    /**
-     * 是否启用：1-启用，0-禁用
-     */
-    private Boolean enabled;
+  /**
+   * 是否启用：1-启用，0-禁用
+   */
+  private Boolean enabled;
 
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
+  /**
+   * 创建时间
+   */
+  private LocalDateTime createTime;
 
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
+  /**
+   * 更新时间
+   */
+  private LocalDateTime updateTime;
 }

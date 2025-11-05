@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 用户 Mapper
+ * User Mapper
  *
  * @author yaomianwei
  * @since 2025/11/3
@@ -14,10 +14,10 @@ import org.apache.ibatis.annotations.Param;
 public interface UserMapper {
 
     /**
-     * 根据用户名查询用户
+     * find user by username
      *
-     * @param username 用户名
-     * @return 用户信息
+     * @param username username
+     * @return user information
      */
     SysUser findByUsername(@Param("username") String username);
 }
