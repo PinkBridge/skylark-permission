@@ -1,5 +1,6 @@
 package cn.skylark.permission.oauth2.service;
 
+import cn.skylark.permission.oauth2.OauthConfig;
 import cn.skylark.permission.oauth2.mapper.RefreshTokenMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -17,9 +18,8 @@ import javax.annotation.Resource;
 public class LogoutService {
   @Resource
   private RefreshTokenMapper refreshTokenMapper;
-
-  @Value("${oauth.signingKey}")
-  private String signingKey;
+  @Resource
+  private OauthConfig oauthConfig;
 
   /**
    * logout: delete refresh token
@@ -64,7 +64,7 @@ public class LogoutService {
   private Claims parseJwtToken(String accessToken) {
     try {
       return Jwts.parser()
-              .setSigningKey(signingKey)
+              .setSigningKey(oauthConfig.getSigningKey())
               .parseClaimsJws(accessToken)
               .getBody();
     } catch (Exception e) {
