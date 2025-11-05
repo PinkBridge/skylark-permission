@@ -8,7 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author yaomianwei
  */
 @SpringBootApplication
-@MapperScan("cn.skylark.permission.oauth2.mapper")
+@MapperScan({"cn.skylark.permission.authentication.mapper", 
+"cn.skylark.permission.authorization.mapper"})
 public class PermissionApplication {
   public static void main(String[] args) {
     SpringApplication.run(PermissionApplication.class, args);

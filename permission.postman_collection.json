@@ -1,0 +1,714 @@
+{
+  "info": {
+    "name": "Permission System API",
+    "description": "OAuth2 权限管理系统 API 集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:9527",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clientId",
+      "value": "clientapp",
+      "type": "string"
+    },
+    {
+      "key": "clientSecret",
+      "value": "112233",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "OAuth2 认证",
+      "item": [
+        {
+          "name": "获取 Token (密码模式)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.access_token) {",
+                  "        pm.collectionVariables.set('accessToken', jsonData.access_token);",
+                  "    }",
+                  "    if (jsonData.refresh_token) {",
+                  "        pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{clientId}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{clientSecret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "yunai",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "1024",
+                  "type": "text"
+                },
+                {
+                  "key": "scope",
+                  "value": "read_userinfo,read_contacts",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/oauth/token",
+              "host": ["{{baseUrl}}"],
+              "path": ["oauth", "token"]
+            },
+            "description": "使用用户名密码获取 access_token 和 refresh_token"
+          }
+        },
+        {
+          "name": "刷新 Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.access_token) {",
+                  "        pm.collectionVariables.set('accessToken', jsonData.access_token);",
+                  "    }",
+                  "    if (jsonData.refresh_token) {",
+                  "        pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{clientId}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{clientSecret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "refresh_token",
+                  "type": "text"
+                },
+                {
+                  "key": "refresh_token",
+                  "value": "{{refreshToken}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/oauth/token",
+              "host": ["{{baseUrl}}"],
+              "path": ["oauth", "token"]
+            },
+            "description": "使用 refresh_token 刷新 access_token"
+          }
+        },
+        {
+          "name": "获取 Token (客户端模式)",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "client-credentials-client",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "client-secret-123",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials",
+                  "type": "text"
+                },
+                {
+                  "key": "scope",
+                  "value": "read,write",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/oauth/token",
+              "host": ["{{baseUrl}}"],
+              "path": ["oauth", "token"]
+            },
+            "description": "客户端模式，无需用户参与"
+          }
+        },
+        {
+          "name": "登出",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/oauth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["oauth", "logout"]
+            },
+            "description": "登出，删除 refresh token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "菜单管理",
+      "item": [
+        {
+          "name": "获取菜单列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/menus",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "menus"]
+            },
+            "description": "获取所有菜单"
+          }
+        },
+        {
+          "name": "获取菜单详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/menus/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "menus", "1"]
+            },
+            "description": "根据ID获取菜单详情"
+          }
+        },
+        {
+          "name": "创建菜单",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parentId\": null,\n  \"name\": \"测试菜单\",\n  \"path\": \"/test\",\n  \"icon\": \"test\",\n  \"sort\": 100,\n  \"hidden\": false,\n  \"moduleKey\": \"test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/menus",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "menus"]
+            },
+            "description": "创建新菜单"
+          }
+        },
+        {
+          "name": "更新菜单",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parentId\": null,\n  \"name\": \"测试菜单(已更新)\",\n  \"path\": \"/test\",\n  \"icon\": \"test\",\n  \"sort\": 100,\n  \"hidden\": false,\n  \"moduleKey\": \"test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/menus/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "menus", "1"]
+            },
+            "description": "更新菜单信息"
+          }
+        },
+        {
+          "name": "删除菜单",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/menus/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "menus", "1"]
+            },
+            "description": "删除菜单"
+          }
+        },
+        {
+          "name": "获取当前用户菜单树",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/menus/me/tree",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "menus", "me", "tree"]
+            },
+            "description": "获取当前登录用户的菜单树（用于前端渲染）"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API 管理",
+      "item": [
+        {
+          "name": "获取API列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/apis",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apis"]
+            },
+            "description": "获取所有API资源"
+          }
+        },
+        {
+          "name": "获取API详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/apis/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apis", "1"]
+            },
+            "description": "根据ID获取API详情"
+          }
+        },
+        {
+          "name": "创建API",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"GET\",\n  \"path\": \"/api/test\",\n  \"permlabel\": \"test.read\",\n  \"moduleKey\": \"test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apis",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apis"]
+            },
+            "description": "创建新的API资源"
+          }
+        },
+        {
+          "name": "更新API",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"GET\",\n  \"path\": \"/api/test\",\n  \"permlabel\": \"test.read.updated\",\n  \"moduleKey\": \"test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apis/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apis", "1"]
+            },
+            "description": "更新API资源"
+          }
+        },
+        {
+          "name": "删除API",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/apis/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apis", "1"]
+            },
+            "description": "删除API资源"
+          }
+        }
+      ]
+    },
+    {
+      "name": "角色管理",
+      "item": [
+        {
+          "name": "获取角色列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles"]
+            },
+            "description": "获取所有角色"
+          }
+        },
+        {
+          "name": "获取角色详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles", "1"]
+            },
+            "description": "根据ID获取角色详情"
+          }
+        },
+        {
+          "name": "创建角色",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ROLE_TEST\",\n  \"remark\": \"测试角色\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles"]
+            },
+            "description": "创建新角色"
+          }
+        },
+        {
+          "name": "更新角色",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ROLE_TEST\",\n  \"remark\": \"测试角色(已更新)\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles", "1"]
+            },
+            "description": "更新角色信息"
+          }
+        },
+        {
+          "name": "删除角色",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles", "1"]
+            },
+            "description": "删除角色"
+          }
+        },
+        {
+          "name": "获取角色的菜单",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/1/menus",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles", "1", "menus"]
+            },
+            "description": "获取指定角色已绑定的菜单列表"
+          }
+        },
+        {
+          "name": "绑定角色菜单",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[1, 2, 3]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/1/menus:bind",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles", "1", "menus:bind"]
+            },
+            "description": "为角色绑定菜单（传入菜单ID数组）"
+          }
+        },
+        {
+          "name": "获取角色的API",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/1/apis",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles", "1", "apis"]
+            },
+            "description": "获取指定角色已绑定的API列表"
+          }
+        },
+        {
+          "name": "绑定角色API",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[1, 2, 3, 4]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/roles/1/apis:bind",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "roles", "1", "apis:bind"]
+            },
+            "description": "为角色绑定API（传入API ID数组）"
+          }
+        }
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.skylark.permission.authorization.mapper.ApiMapper">
+
+    <resultMap id="ApiResult" type="cn.skylark.permission.authorization.entity.SysApi">
+        <id column="id" property="id"/>
+        <result column="method" property="method"/>
+        <result column="path" property="path"/>
+        <result column="permlabel" property="permlabel"/>
+        <result column="module_key" property="moduleKey"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectById" parameterType="long" resultMap="ApiResult">
+        SELECT *
+        FROM sys_api
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="ApiResult">
+        SELECT *
+        FROM sys_api
+        ORDER BY id ASC
+    </select>
+
+    <insert id="insert" parameterType="cn.skylark.permission.authorization.entity.SysApi">
+        INSERT INTO sys_api(method, path, permlabel, module_key)
+        VALUES (#{method}, #{path}, #{permlabel}, #{moduleKey})
+    </insert>
+
+    <update id="update" parameterType="cn.skylark.permission.authorization.entity.SysApi">
+        UPDATE sys_api
+        SET method     = #{method},
+            path       = #{path},
+            permlabel  = #{permlabel},
+            module_key = #{moduleKey}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE
+        FROM sys_api
+        WHERE id = #{id}
+    </delete>
+
+    <select id="selectByRoleId" parameterType="long" resultMap="ApiResult">
+        SELECT a.*
+        FROM sys_api a
+                 INNER JOIN sys_role_api ra ON ra.api_id = a.id
+        WHERE ra.role_id = #{roleId}
+        ORDER BY a.id ASC
+    </select>
+
+    <delete id="deleteBindingsByRoleId" parameterType="long">
+        DELETE
+        FROM sys_role_api
+        WHERE role_id = #{roleId}
+    </delete>
+
+    <insert id="bindRoleApis">
+        INSERT INTO sys_role_api(role_id, api_id)
+        VALUES
+        <foreach collection="apiIds" item="aid" separator=",">
+            (#{roleId}, #{aid})
+        </foreach>
+    </insert>
+
+</mapper>

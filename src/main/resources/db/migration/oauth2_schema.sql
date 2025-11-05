@@ -99,3 +99,117 @@ ON DUPLICATE KEY UPDATE
   `password` = VALUES(`password`),
   `enabled` = VALUES(`enabled`);
 
+
+-- RBAC tables
+CREATE TABLE IF NOT EXISTS `sys_menu` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `parent_id` BIGINT DEFAULT NULL,
+  `name` VARCHAR(100) NOT NULL,
+  `path` VARCHAR(200) DEFAULT NULL,
+  `icon` VARCHAR(100) DEFAULT NULL,
+  `sort` INT DEFAULT 0,
+  `hidden` TINYINT(1) DEFAULT 0,
+  `module_key` VARCHAR(100) DEFAULT NULL,
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_parent` (`parent_id`),
+  KEY `idx_sort` (`sort`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统菜单';
+
+CREATE TABLE IF NOT EXISTS `sys_api` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `method` VARCHAR(10) NOT NULL,
+  `path` VARCHAR(255) NOT NULL,
+  `permlabel` VARCHAR(100) NOT NULL,
+  `module_key` VARCHAR(100) DEFAULT NULL,
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_api` (`method`,`path`),
+  KEY `idx_permlabel` (`permlabel`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='API 资源';
+
+CREATE TABLE IF NOT EXISTS `sys_role` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `remark` VARCHAR(255) DEFAULT NULL,
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_role_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统角色';
+
+CREATE TABLE IF NOT EXISTS `sys_user_role` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT NOT NULL,
+  `role_id` BIGINT NOT NULL,
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_role` (`user_id`,`role_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户-角色关联';
+
+CREATE TABLE IF NOT EXISTS `sys_role_menu` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `role_id` BIGINT NOT NULL,
+  `menu_id` BIGINT NOT NULL,
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_role_menu` (`role_id`,`menu_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-菜单关联';
+
+CREATE TABLE IF NOT EXISTS `sys_role_api` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `role_id` BIGINT NOT NULL,
+  `api_id` BIGINT NOT NULL,
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_role_api` (`role_id`,`api_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-API关联';
+
+-- seed menus
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `path`, `icon`, `sort`, `hidden`, `module_key`) VALUES
+  (1, NULL, '控制台', '/dashboard', 'dashboard', 10, 0, 'console'),
+  (2, NULL, '系统管理', '/system', 'setting', 20, 0, 'system'),
+  (3, 2, '用户管理', '/system/users', 'user', 10, 0, 'system.user'),
+  (4, 2, '角色管理', '/system/roles', 'team', 20, 0, 'system.role'),
+  (5, 2, '菜单管理', '/system/menus', 'menu', 30, 0, 'system.menu')
+ON DUPLICATE KEY UPDATE name=VALUES(name), path=VALUES(path), icon=VALUES(icon), sort=VALUES(sort), hidden=VALUES(hidden), module_key=VALUES(module_key);
+
+-- seed apis
+INSERT INTO `sys_api`(`method`,`path`,`permlabel`,`module_key`) VALUES
+ ('GET','/api/authorization/menus','menu.read','system.menu'),
+ ('POST','/api/authorization/menus','menu.create','system.menu'),
+ ('PUT','/api/authorization/menus/{id}','menu.update','system.menu'),
+ ('DELETE','/api/authorization/menus/{id}','menu.delete','system.menu'),
+ ('GET','/api/authorization/apis','api.read','system.api'),
+ ('POST','/api/authorization/apis','api.create','system.api'),
+ ('PUT','/api/authorization/apis/{id}','api.update','system.api'),
+ ('DELETE','/api/authorization/apis/{id}','api.delete','system.api'),
+ ('GET','/api/authorization/roles','role.read','system.role'),
+ ('POST','/api/authorization/roles','role.create','system.role'),
+ ('PUT','/api/authorization/roles/{id}','role.update','system.role'),
+ ('DELETE','/api/authorization/roles/{id}','role.delete','system.role')
+ON DUPLICATE KEY UPDATE permlabel=VALUES(permlabel), module_key=VALUES(module_key);
+
+-- seed roles
+INSERT INTO `sys_role`(`name`,`remark`) VALUES
+ ('ROLE_ADMIN','管理员'),
+ ('ROLE_USER','普通用户')
+ON DUPLICATE KEY UPDATE remark=VALUES(remark);
+
+-- bind admin role all menus
+INSERT INTO `sys_role_menu`(`role_id`,`menu_id`)
+SELECT r.id, m.id FROM sys_role r, sys_menu m WHERE r.name='ROLE_ADMIN'
+ON DUPLICATE KEY UPDATE role_id=role_id;
+
+-- bind admin role all apis
+INSERT INTO `sys_role_api`(`role_id`,`api_id`)
+SELECT r.id, a.id FROM sys_role r, sys_api a WHERE r.name='ROLE_ADMIN'
+ON DUPLICATE KEY UPDATE role_id=role_id;
+
+-- bind user yunai to admin if exists
+INSERT INTO `sys_user_role`(`user_id`,`role_id`)
+SELECT u.id, r.id FROM sys_user u, sys_role r WHERE u.username='yunai' AND r.name='ROLE_ADMIN'
+ON DUPLICATE KEY UPDATE user_id=user_id;
+
