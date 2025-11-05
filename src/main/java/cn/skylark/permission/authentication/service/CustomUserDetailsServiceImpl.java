@@ -1,7 +1,7 @@
-package cn.skylark.permission.oauth2.service;
+package cn.skylark.permission.authentication.service;
 
-import cn.skylark.permission.oauth2.entity.SysUser;
-import cn.skylark.permission.oauth2.mapper.UserMapper;
+import cn.skylark.permission.authentication.entity.SysUser;
+import cn.skylark.permission.authentication.mapper.UserMapper;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,6 +36,7 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
     return User.builder()
             .username(sysUser.getUsername())
             .password(sysUser.getPassword())
+            .roles()
             .authorities(Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")))
             .accountExpired(false)
             .accountLocked(false)

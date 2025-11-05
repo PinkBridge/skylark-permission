@@ -1,4 +1,4 @@
-package cn.skylark.permission.oauth2.mapper;
+package cn.skylark.permission.authentication.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

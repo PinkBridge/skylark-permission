@@ -1,10 +1,9 @@
-package cn.skylark.permission.oauth2.service;
+package cn.skylark.permission.authentication.service;
 
-import cn.skylark.permission.oauth2.OauthConfig;
-import cn.skylark.permission.oauth2.mapper.RefreshTokenMapper;
+import cn.skylark.permission.authentication.OauthConfig;
+import cn.skylark.permission.authentication.mapper.RefreshTokenMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

@@ -1,6 +1,6 @@
-package cn.skylark.permission.oauth2.handler;
+package cn.skylark.permission.authentication.handler;
 
-import cn.skylark.permission.oauth2.service.LogoutService;
+import cn.skylark.permission.authentication.service.LogoutService;
 import com.alibaba.fastjson.JSON;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;

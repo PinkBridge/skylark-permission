@@ -1,6 +1,6 @@
-package cn.skylark.permission.oauth2.mapper;
+package cn.skylark.permission.authentication.mapper;
 
-import cn.skylark.permission.oauth2.entity.SysUser;
+import cn.skylark.permission.authentication.entity.SysUser;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

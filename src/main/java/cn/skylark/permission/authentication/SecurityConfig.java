@@ -1,6 +1,6 @@
-package cn.skylark.permission.oauth2;
+package cn.skylark.permission.authentication;
 
-import cn.skylark.permission.oauth2.handler.CustomLogoutSuccessHandler;
+import cn.skylark.permission.authentication.handler.CustomLogoutSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

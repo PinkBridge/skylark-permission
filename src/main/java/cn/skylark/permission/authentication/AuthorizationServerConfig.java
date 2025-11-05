@@ -1,4 +1,4 @@
-package cn.skylark.permission.oauth2;
+package cn.skylark.permission.authentication;
 
 
 import org.springframework.context.annotation.Bean;
