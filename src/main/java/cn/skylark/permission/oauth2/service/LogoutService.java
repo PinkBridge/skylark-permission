@@ -33,44 +33,21 @@ public class LogoutService {
       return false;
     }
 
-    // parse JWT token，extract all possible token IDs
-    Claims claims = parseJwtToken(accessToken);
-    if (claims == null) {
+    Claims claims;
+    try {
+      claims = Jwts.parser().setSigningKey(oauthConfig.getSigningKey())
+              .parseClaimsJws(accessToken).getBody();
+    }catch (Exception e) {
       return false;
     }
 
-    // try to delete refresh token by priority
-    // 1. try to delete refresh token by jti (JWT ID)
     String jti = claims.getId();
     if (tryDeleteRefreshToken(jti)) {
       return true;
     }
 
-    // 2. try to delete refresh token by ati (Access Token Identifier)
     String ati = claims.get("ati", String.class);
-    if (tryDeleteRefreshToken(ati)) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * parse JWT token，extract Claims
-   *
-   * @param accessToken JWT access token
-   * @return Claims, if the token is invalid, expired or format error, return null
-   */
-  private Claims parseJwtToken(String accessToken) {
-    try {
-      return Jwts.parser()
-              .setSigningKey(oauthConfig.getSigningKey())
-              .parseClaimsJws(accessToken)
-              .getBody();
-    } catch (Exception e) {
-      // Token is invalid, expired or format error
-      return null;
-    }
+    return tryDeleteRefreshToken(ati);
   }
 
   /**
@@ -80,20 +57,6 @@ public class LogoutService {
    * @return
    */
   private boolean tryDeleteRefreshToken(String tokenId) {
-    if (tokenId == null || tokenId.isEmpty()) {
-      return false;
-    }
-    int deleted = refreshTokenMapper.deleteByTokenId(tokenId);
-    return deleted > 0;
-  }
-
-  /**
-   * delete refresh token by token id directly
-   *
-   * @param tokenId refresh token id
-   * @return whether the refresh token is deleted successfully
-   */
-  public boolean logoutByTokenId(String tokenId) {
     if (tokenId == null || tokenId.isEmpty()) {
       return false;
     }
