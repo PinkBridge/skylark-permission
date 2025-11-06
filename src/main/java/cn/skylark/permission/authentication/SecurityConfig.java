@@ -64,8 +64,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/api/**").authenticated()
             .anyRequest().authenticated()
             .and()
-            // 添加 JWT 认证过滤器（在 UsernamePasswordAuthenticationFilter 之前）
-            // 如果请求有 JWT token，使用 JWT 认证；如果没有，使用表单登录（session）
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .formLogin()
             .and()

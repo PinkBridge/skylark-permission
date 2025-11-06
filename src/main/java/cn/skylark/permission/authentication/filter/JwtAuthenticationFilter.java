@@ -67,7 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           SecurityContextHolder.getContext().setAuthentication(authentication);
 
         } else {
-          log.error("Skipping authentication setup - username: {}, existingAuth: {}",
+          log.warn("Skipping authentication setup - username: {}, existingAuth: {}",
                   username, existingAuth != null ? "present" : "null");
         }
       } catch (Exception e) {
@@ -77,8 +77,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       }
     } else {
       // 没有提供 token，继续执行让其他认证机制处理
-      log.error("No JWT token found in request: {}", request.getRequestURI());
-      log.error("Authorization header: {}", request.getHeader("Authorization"));
+      log.warn("No JWT token found in request: {}", request.getRequestURI());
+      log.warn("Authorization header: {}", request.getHeader("Authorization"));
     }
 
     filterChain.doFilter(request, response);
