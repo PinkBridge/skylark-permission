@@ -13,7 +13,7 @@ import java.util.List;
  * @author yaomianwei
  */
 @RestController
-@RequestMapping("/api/menus")
+@RequestMapping("/api/permission/menus")
 public class MenuController {
 
   @Resource

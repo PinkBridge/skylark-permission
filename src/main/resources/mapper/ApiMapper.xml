@@ -66,4 +66,22 @@
         </foreach>
     </insert>
 
+    <select id="countByRoleNamesAndApi" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_role r
+                 INNER JOIN sys_role_api ra ON ra.role_id = r.id
+                 INNER JOIN sys_api a ON a.id = ra.api_id
+        WHERE r.name IN
+        <foreach collection="roleNames" item="roleName" open="(" separator="," close=")">
+            #{roleName}
+        </foreach>
+        <if test="permlabel != null and permlabel != ''">
+            AND a.permlabel = #{permlabel}
+        </if>
+        <if test="permlabel == null or permlabel == ''">
+            AND a.method = #{method}
+            AND a.path = #{path}
+        </if>
+    </select>
+
 </mapper>

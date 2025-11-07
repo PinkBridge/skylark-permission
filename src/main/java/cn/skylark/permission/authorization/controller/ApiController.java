@@ -12,7 +12,7 @@ import java.util.List;
  * @author yaomianwei
  */
 @RestController
-@RequestMapping("/api/apis")
+@RequestMapping("/api/permission/apis")
 public class ApiController {
 
   @Resource

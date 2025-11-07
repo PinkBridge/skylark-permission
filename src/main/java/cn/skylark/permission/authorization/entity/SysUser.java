@@ -1,4 +1,4 @@
-package cn.skylark.permission.authentication.entity;
+package cn.skylark.permission.authorization.entity;
 
 import lombok.Data;
 

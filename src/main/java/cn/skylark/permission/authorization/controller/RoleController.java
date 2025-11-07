@@ -16,7 +16,7 @@ import java.util.List;
  * @author yaomianwei
  */
 @RestController
-@RequestMapping("/api/roles")
+@RequestMapping("/api/permission/roles")
 public class RoleController {
 
   @Resource

@@ -23,4 +23,9 @@ public interface ApiMapper {
   int deleteBindingsByRoleId(@Param("roleId") Long roleId);
 
   int bindRoleApis(@Param("roleId") Long roleId, @Param("apiIds") List<Long> apiIds);
+
+  int countByRoleNamesAndApi(@Param("roleNames") List<String> roleNames,
+                             @Param("method") String method,
+                             @Param("path") String path,
+                             @Param("permlabel") String permlabel);
 }

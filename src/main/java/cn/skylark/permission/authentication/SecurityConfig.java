@@ -73,14 +73,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/oauth/token").permitAll()
             .antMatchers("/oauth/authorize").authenticated()
             .antMatchers("/oauth/**").permitAll()
-            .antMatchers(API_PREFIX).hasAuthority("ADMIN")
-            .anyRequest().authenticated()
+            .anyRequest().access("@rbacService.hasPermission(request,authentication)")
             .and()
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .formLogin()
             .and()
             .logout()
             .logoutUrl("/oauth/logout")
+            .clearAuthentication(true).invalidateHttpSession(true)
             .logoutSuccessHandler(customLogoutSuccessHandler)
             .permitAll();
   }

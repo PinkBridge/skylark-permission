@@ -3,6 +3,7 @@ package cn.skylark.permission.authorization.service;
 import cn.skylark.permission.authorization.entity.SysApi;
 import cn.skylark.permission.authorization.mapper.ApiMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -42,5 +43,23 @@ public class ApiService {
     if (apiIds != null && !apiIds.isEmpty()) {
       apiMapper.bindRoleApis(roleId, apiIds);
     }
+  }
+
+  public boolean isApiBoundToRoles(List<String> roleNames, String method, String path) {
+    return isApiBoundToRolesInternal(roleNames, method, path, null);
+  }
+
+  public boolean isApiBoundToRolesByPermlabel(List<String> roleNames, String permlabel) {
+    return isApiBoundToRolesInternal(roleNames, null, null, permlabel);
+  }
+
+  private boolean isApiBoundToRolesInternal(List<String> roleNames, String method, String path, String permlabel) {
+    if (CollectionUtils.isEmpty(roleNames)) {
+      return false;
+    }
+    if ((permlabel == null || permlabel.isEmpty()) && (method == null || path == null)) {
+      return false;
+    }
+    return apiMapper.countByRoleNamesAndApi(roleNames, method, path, permlabel) > 0;
   }
 }
