@@ -1,20 +1,21 @@
 package cn.skylark.permission.authentication;
 
 import cn.skylark.permission.authentication.filter.JwtAuthenticationFilter;
-import cn.skylark.permission.authentication.handler.CustomLogoutSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.annotation.Resource;
 
@@ -31,11 +32,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private UserDetailsService customUserDetailsService;
 
   @Resource
-  @Lazy
-  private CustomLogoutSuccessHandler customLogoutSuccessHandler;
+  private LogoutSuccessHandler customLogoutSuccessHandler;
 
   @Resource
   private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+  @Resource
+  private AccessDeniedHandler customAccessDeniedHandler;
+
+  @Resource
+  private AuthenticationEntryPoint customAuthenticationEntryPoint;
+
+  private static final String API_PREFIX = "/api/**";
 
   @Override
   @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
@@ -57,11 +65,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.csrf().disable()
+            .exceptionHandling()
+            .defaultAccessDeniedHandlerFor(customAccessDeniedHandler, new AntPathRequestMatcher(API_PREFIX))
+            .defaultAuthenticationEntryPointFor(customAuthenticationEntryPoint, new AntPathRequestMatcher(API_PREFIX))
+            .and()
             .authorizeRequests()
             .antMatchers("/oauth/token").permitAll()
             .antMatchers("/oauth/authorize").authenticated()
             .antMatchers("/oauth/**").permitAll()
-            .antMatchers("/api/**").authenticated()
+            .antMatchers(API_PREFIX).hasAuthority("ADMIN")
             .anyRequest().authenticated()
             .and()
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

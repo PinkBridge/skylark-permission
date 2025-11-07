@@ -7,9 +7,9 @@ import java.time.LocalDateTime;
 @Data
 public class SysApi {
   private Long id;
-  private String method; // GET, POST, ...
+  private String method;
   private String path;
-  private String permlabel; // permission label
+  private String permlabel;
   private String moduleKey;
   private LocalDateTime createTime;
   private LocalDateTime updateTime;

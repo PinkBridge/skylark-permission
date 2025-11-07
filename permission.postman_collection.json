@@ -1,23 +1,13 @@
 {
   "info": {
-    "name": "Permission System API",
-    "description": "OAuth2 权限管理系统 API 集合",
+    "name": "Skylark Permission APIs",
+    "description": "OAuth2 + RBAC 权限系统 Postman 集合",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:9527",
-      "type": "string"
-    },
-    {
-      "key": "accessToken",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "refreshToken",
-      "value": "",
       "type": "string"
     },
     {
@@ -29,27 +19,68 @@
       "key": "clientSecret",
       "value": "112233",
       "type": "string"
+    },
+    {
+      "key": "authCodeClientId",
+      "value": "app2",
+      "type": "string"
+    },
+    {
+      "key": "authCodeClientSecret",
+      "value": "223344",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 集合级 pre-request hook 可在此添加全局逻辑"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 集合级测试脚本预留位置"
+        ]
+      }
     }
   ],
   "item": [
     {
-      "name": "OAuth2 认证",
+      "name": "OAuth2 授权流程",
+      "description": "演示密码模式、授权码模式、客户端模式、刷新、登出等场景",
       "item": [
         {
-          "name": "获取 Token (密码模式)",
+          "name": "密码模式获取 Token",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.access_token) {",
-                  "        pm.collectionVariables.set('accessToken', jsonData.access_token);",
-                  "    }",
-                  "    if (jsonData.refresh_token) {",
-                  "        pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
-                  "    }",
+                  "  var jsonData = pm.response.json();",
+                  "  if (jsonData.access_token) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.access_token);",
+                  "  }",
+                  "  if (jsonData.refresh_token) {",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
+                  "  }",
                   "}"
                 ]
               }
@@ -105,10 +136,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/oauth/token",
-              "host": ["{{baseUrl}}"],
-              "path": ["oauth", "token"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "token"
+              ]
             },
-            "description": "使用用户名密码获取 access_token 和 refresh_token"
+            "description": "OAuth2 密码模式，使用资源所有者用户名密码换取 token"
           }
         },
         {
@@ -119,13 +155,13 @@
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.access_token) {",
-                  "        pm.collectionVariables.set('accessToken', jsonData.access_token);",
-                  "    }",
-                  "    if (jsonData.refresh_token) {",
-                  "        pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
-                  "    }",
+                  "  var jsonData = pm.response.json();",
+                  "  if (jsonData.access_token) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.access_token);",
+                  "  }",
+                  "  if (jsonData.refresh_token) {",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
+                  "  }",
                   "}"
                 ]
               }
@@ -171,26 +207,144 @@
             },
             "url": {
               "raw": "{{baseUrl}}/oauth/token",
-              "host": ["{{baseUrl}}"],
-              "path": ["oauth", "token"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "token"
+              ]
             },
             "description": "使用 refresh_token 刷新 access_token"
           }
         },
         {
-          "name": "获取 Token (客户端模式)",
+          "name": "授权码模式 Step1: 获取授权码",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/oauth/authorize?response_type=code&client_id={{authCodeClientId}}&redirect_uri=http://localhost:3000/callback&scope=read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "authorize"
+              ],
+              "query": [
+                {
+                  "key": "response_type",
+                  "value": "code"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{authCodeClientId}}"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:3000/callback"
+                },
+                {
+                  "key": "scope",
+                  "value": "read"
+                }
+              ]
+            },
+            "description": "浏览器打开时会跳转到登录页。登录 + 授权通过后，后端会重定向到 redirect_uri 并携带 code。"
+          }
+        },
+        {
+          "name": "授权码模式 Step2: 使用授权码换 Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var jsonData = pm.response.json();",
+                  "  if (jsonData.access_token) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.access_token);",
+                  "  }",
+                  "  if (jsonData.refresh_token) {",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "auth": {
               "type": "basic",
               "basic": [
                 {
                   "key": "username",
-                  "value": "client-credentials-client",
+                  "value": "{{authCodeClientId}}",
                   "type": "string"
                 },
                 {
                   "key": "password",
-                  "value": "client-secret-123",
+                  "value": "{{authCodeClientSecret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code",
+                  "type": "text"
+                },
+                {
+                  "key": "code",
+                  "value": "{{authCode}}",
+                  "type": "text",
+                  "description": "将 Step1 回调URL中的 code 复制到环境变量 authCode 后执行"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "http://localhost:3000/callback",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/oauth/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "token"
+              ]
+            },
+            "description": "用授权码换取 access_token / refresh_token"
+          }
+        },
+        {
+          "name": "客户端模式获取 Token",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "app3",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "112233",
                   "type": "string"
                 }
               ]
@@ -219,14 +373,19 @@
             },
             "url": {
               "raw": "{{baseUrl}}/oauth/token",
-              "host": ["{{baseUrl}}"],
-              "path": ["oauth", "token"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "token"
+              ]
             },
-            "description": "客户端模式，无需用户参与"
+            "description": "OAuth2 客户端凭证模式"
           }
         },
         {
-          "name": "登出",
+          "name": "登出并移除刷新 Token",
           "request": {
             "method": "POST",
             "header": [
@@ -234,24 +393,26 @@
                 "key": "Authorization",
                 "value": "Bearer {{accessToken}}",
                 "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
               }
             ],
             "url": {
               "raw": "{{baseUrl}}/oauth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["oauth", "logout"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "logout"
+              ]
             },
-            "description": "登出，删除 refresh token"
+            "description": "触发自定义登出逻辑，删除 refresh_token"
           }
         }
       ]
     },
     {
-      "name": "菜单管理",
+      "name": "RBAC 菜单管理",
+      "description": "菜单资源 CRUD 及用户菜单树",
       "item": [
         {
           "name": "获取菜单列表",
@@ -266,10 +427,14 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/menus",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "menus"]
-            },
-            "description": "获取所有菜单"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "menus"
+              ]
+            }
           }
         },
         {
@@ -285,10 +450,15 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/menus/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "menus", "1"]
-            },
-            "description": "根据ID获取菜单详情"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "menus",
+                "1"
+              ]
+            }
           }
         },
         {
@@ -312,10 +482,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/menus",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "menus"]
-            },
-            "description": "创建新菜单"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "menus"
+              ]
+            }
           }
         },
         {
@@ -335,14 +509,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"parentId\": null,\n  \"name\": \"测试菜单(已更新)\",\n  \"path\": \"/test\",\n  \"icon\": \"test\",\n  \"sort\": 100,\n  \"hidden\": false,\n  \"moduleKey\": \"test\"\n}"
+              "raw": "{\n  \"parentId\": null,\n  \"name\": \"测试菜单(更新)\",\n  \"path\": \"/test\",\n  \"icon\": \"test\",\n  \"sort\": 100,\n  \"hidden\": false,\n  \"moduleKey\": \"test\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/menus/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "menus", "1"]
-            },
-            "description": "更新菜单信息"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "menus",
+                "1"
+              ]
+            }
           }
         },
         {
@@ -358,14 +537,19 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/menus/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "menus", "1"]
-            },
-            "description": "删除菜单"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "menus",
+                "1"
+              ]
+            }
           }
         },
         {
-          "name": "获取当前用户菜单树",
+          "name": "当前用户菜单树",
           "request": {
             "method": "GET",
             "header": [
@@ -377,19 +561,26 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/menus/me/tree",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "menus", "me", "tree"]
-            },
-            "description": "获取当前登录用户的菜单树（用于前端渲染）"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "menus",
+                "me",
+                "tree"
+              ]
+            }
           }
         }
       ]
     },
     {
-      "name": "API 管理",
+      "name": "RBAC API 管理",
+      "description": "API 资源 CRUD",
       "item": [
         {
-          "name": "获取API列表",
+          "name": "获取 API 列表",
           "request": {
             "method": "GET",
             "header": [
@@ -401,14 +592,18 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/apis",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "apis"]
-            },
-            "description": "获取所有API资源"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apis"
+              ]
+            }
           }
         },
         {
-          "name": "获取API详情",
+          "name": "获取 API 详情",
           "request": {
             "method": "GET",
             "header": [
@@ -420,14 +615,19 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/apis/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "apis", "1"]
-            },
-            "description": "根据ID获取API详情"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apis",
+                "1"
+              ]
+            }
           }
         },
         {
-          "name": "创建API",
+          "name": "创建 API",
           "request": {
             "method": "POST",
             "header": [
@@ -447,14 +647,18 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/apis",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "apis"]
-            },
-            "description": "创建新的API资源"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apis"
+              ]
+            }
           }
         },
         {
-          "name": "更新API",
+          "name": "更新 API",
           "request": {
             "method": "PUT",
             "header": [
@@ -474,14 +678,19 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/apis/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "apis", "1"]
-            },
-            "description": "更新API资源"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apis",
+                "1"
+              ]
+            }
           }
         },
         {
-          "name": "删除API",
+          "name": "删除 API",
           "request": {
             "method": "DELETE",
             "header": [
@@ -493,16 +702,22 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/apis/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "apis", "1"]
-            },
-            "description": "删除API资源"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "apis",
+                "1"
+              ]
+            }
           }
         }
       ]
     },
     {
-      "name": "角色管理",
+      "name": "RBAC 角色管理",
+      "description": "角色 CRUD 及资源绑定",
       "item": [
         {
           "name": "获取角色列表",
@@ -517,10 +732,14 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/roles",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "roles"]
-            },
-            "description": "获取所有角色"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
           }
         },
         {
@@ -536,10 +755,15 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/roles/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "roles", "1"]
-            },
-            "description": "根据ID获取角色详情"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1"
+              ]
+            }
           }
         },
         {
@@ -563,10 +787,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/roles",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "roles"]
-            },
-            "description": "创建新角色"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
           }
         },
         {
@@ -586,14 +814,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"ROLE_TEST\",\n  \"remark\": \"测试角色(已更新)\"\n}"
+              "raw": "{\n  \"name\": \"ROLE_TEST\",\n  \"remark\": \"测试角色(更新)\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/roles/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "roles", "1"]
-            },
-            "description": "更新角色信息"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1"
+              ]
+            }
           }
         },
         {
@@ -609,14 +842,19 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/roles/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "roles", "1"]
-            },
-            "description": "删除角色"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1"
+              ]
+            }
           }
         },
         {
-          "name": "获取角色的菜单",
+          "name": "查询角色已绑定菜单",
           "request": {
             "method": "GET",
             "header": [
@@ -628,14 +866,20 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/roles/1/menus",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "roles", "1", "menus"]
-            },
-            "description": "获取指定角色已绑定的菜单列表"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1",
+                "menus"
+              ]
+            }
           }
         },
         {
-          "name": "绑定角色菜单",
+          "name": "绑定菜单到角色",
           "request": {
             "method": "POST",
             "header": [
@@ -655,14 +899,20 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/roles/1/menus:bind",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "roles", "1", "menus:bind"]
-            },
-            "description": "为角色绑定菜单（传入菜单ID数组）"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1",
+                "menus:bind"
+              ]
+            }
           }
         },
         {
-          "name": "获取角色的API",
+          "name": "查询角色已绑定 API",
           "request": {
             "method": "GET",
             "header": [
@@ -674,14 +924,20 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/roles/1/apis",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "roles", "1", "apis"]
-            },
-            "description": "获取指定角色已绑定的API列表"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1",
+                "apis"
+              ]
+            }
           }
         },
         {
-          "name": "绑定角色API",
+          "name": "绑定 API 到角色",
           "request": {
             "method": "POST",
             "header": [
@@ -701,10 +957,16 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/roles/1/apis:bind",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "roles", "1", "apis:bind"]
-            },
-            "description": "为角色绑定API（传入API ID数组）"
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1",
+                "apis:bind"
+              ]
+            }
           }
         }
       ]
