@@ -1,8 +1,11 @@
 package cn.skylark.permission.authorization.service;
 
+import cn.skylark.permission.authorization.entity.SysApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -28,8 +31,19 @@ public class RbacService {
     List<String> roleNames = authorities.stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.toList());
-    boolean isBound = apiService.isApiBoundToRoles(roleNames, method, requestUri);
-    log.info("hasPermission?: {}, {}, {}, {}", roleNames, method, requestUri, isBound);
-    return isBound;
+    List<SysApi> sysApis = apiService.listByRoleNames(roleNames);
+    boolean has = hasApi(sysApis, request);
+    log.info("hasPermission?: {}, {}, {}, {}", roleNames, method, requestUri, has);
+    return has;
+  }
+
+  private boolean hasApi(List<SysApi> sysApis, HttpServletRequest request) {
+    for (SysApi sysApi : sysApis) {
+      RequestMatcher requestMatcher = new AntPathRequestMatcher(sysApi.getPath(), sysApi.getMethod());
+      if (requestMatcher.matches(request)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

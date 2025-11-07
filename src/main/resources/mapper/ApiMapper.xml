@@ -66,6 +66,18 @@
         </foreach>
     </insert>
 
+    <select id="selectByRoleNames" resultMap="ApiResult">
+        SELECT DISTINCT a.*
+        FROM sys_api a
+                 INNER JOIN sys_role_api ra ON ra.api_id = a.id
+                 INNER JOIN sys_role r ON r.id = ra.role_id
+        WHERE r.name IN
+        <foreach collection="roleNames" item="roleName" open="(" separator="," close=")">
+            #{roleName}
+        </foreach>
+        ORDER BY a.id ASC
+    </select>
+
     <select id="countByRoleNamesAndApi" resultType="int">
         SELECT COUNT(1)
         FROM sys_role r

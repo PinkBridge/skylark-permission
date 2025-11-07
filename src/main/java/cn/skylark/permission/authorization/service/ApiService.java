@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -61,5 +62,12 @@ public class ApiService {
       return false;
     }
     return apiMapper.countByRoleNamesAndApi(roleNames, method, path, permlabel) > 0;
+  }
+
+  public List<SysApi> listByRoleNames(List<String> roleNames) {
+    if (CollectionUtils.isEmpty(roleNames)) {
+      return Collections.emptyList();
+    }
+    return apiMapper.selectByRoleNames(roleNames);
   }
 }

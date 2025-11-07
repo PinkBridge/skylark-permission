@@ -28,4 +28,6 @@ public interface ApiMapper {
                              @Param("method") String method,
                              @Param("path") String path,
                              @Param("permlabel") String permlabel);
+
+  List<SysApi> selectByRoleNames(@Param("roleNames") List<String> roleNames);
 }
