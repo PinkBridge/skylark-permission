@@ -86,11 +86,34 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
   `username` VARCHAR(50) NOT NULL COMMENT '用户名',
   `password` VARCHAR(255) NOT NULL COMMENT '密码',
   `enabled` TINYINT(1) DEFAULT 1 COMMENT '是否启用：1-启用，0-禁用',
+  `gender` VARCHAR(1) DEFAULT NULL COMMENT '性别：M-男，F-女',
+  `avatar` VARCHAR(500) DEFAULT NULL COMMENT '照片URL',
+  `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号码',
+  `email` VARCHAR(100) DEFAULT NULL COMMENT '电子邮箱',
+  `status` VARCHAR(20) DEFAULT 'ACTIVE' COMMENT '状态：ACTIVE-活跃，INACTIVE-非活跃，LOCKED-锁定',
+  `province` VARCHAR(50) DEFAULT NULL COMMENT '省份',
+  `city` VARCHAR(50) DEFAULT NULL COMMENT '城市',
+  `address` VARCHAR(255) DEFAULT NULL COMMENT '详细地址',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_username` (`username`)
+  UNIQUE KEY `uk_username` (`username`),
+  KEY `idx_phone` (`phone`),
+  KEY `idx_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统用户表';
+
+-- 为已存在的表添加新字段（如果表已存在，需要手动执行或使用存储过程检查）
+-- 注意：MySQL不支持IF NOT EXISTS，如果字段已存在会报错，需要手动检查或使用存储过程
+-- 以下语句需要根据实际情况执行，如果字段已存在请注释掉对应行
+-- ALTER TABLE `sys_user` 
+--   ADD COLUMN `gender` VARCHAR(1) DEFAULT NULL COMMENT '性别：M-男，F-女' AFTER `enabled`,
+--   ADD COLUMN `avatar` VARCHAR(500) DEFAULT NULL COMMENT '照片URL' AFTER `gender`,
+--   ADD COLUMN `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号码' AFTER `avatar`,
+--   ADD COLUMN `email` VARCHAR(100) DEFAULT NULL COMMENT '电子邮箱' AFTER `phone`,
+--   ADD COLUMN `status` VARCHAR(20) DEFAULT 'ACTIVE' COMMENT '状态：ACTIVE-活跃，INACTIVE-非活跃，LOCKED-锁定' AFTER `email`,
+--   ADD COLUMN `province` VARCHAR(50) DEFAULT NULL COMMENT '省份' AFTER `status`,
+--   ADD COLUMN `city` VARCHAR(50) DEFAULT NULL COMMENT '城市' AFTER `province`,
+--   ADD COLUMN `address` VARCHAR(255) DEFAULT NULL COMMENT '详细地址' AFTER `city`;
 
 -- 插入示例用户（密码为：1024，使用 NoOpPasswordEncoder 所以存储明文）
 INSERT INTO `sys_user` (`username`, `password`, `enabled`) VALUES 
@@ -167,6 +190,19 @@ CREATE TABLE IF NOT EXISTS `sys_role_api` (
   UNIQUE KEY `uk_role_api` (`role_id`,`api_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-API关联';
 
+CREATE TABLE IF NOT EXISTS `sys_whitelist` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `method` VARCHAR(10) NOT NULL COMMENT 'HTTP方法：GET, POST, PUT, DELETE等，支持ALL表示所有方法',
+  `path` VARCHAR(255) NOT NULL COMMENT 'API路径，支持Ant风格通配符（如：/api/public/**）',
+  `remark` VARCHAR(255) DEFAULT NULL COMMENT '备注说明',
+  `enabled` TINYINT(1) DEFAULT 1 COMMENT '是否启用：1-启用，0-禁用',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_method_path` (`method`, `path`),
+  KEY `idx_enabled` (`enabled`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统白名单表';
+
 -- seed menus
 INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `path`, `icon`, `sort`, `hidden`, `module_key`) VALUES
   (1, NULL, '控制台', '/dashboard', 'dashboard', 10, 0, 'console'),
@@ -212,4 +248,11 @@ ON DUPLICATE KEY UPDATE role_id=role_id;
 INSERT INTO `sys_user_role`(`user_id`,`role_id`)
 SELECT u.id, r.id FROM sys_user u, sys_role r WHERE u.username='yunai' AND r.name='ROLE_ADMIN'
 ON DUPLICATE KEY UPDATE user_id=user_id;
+
+-- seed whitelist (示例数据)
+INSERT INTO `sys_whitelist`(`method`,`path`,`remark`,`enabled`) VALUES
+('ALL','/oauth/**','OAuth2认证相关接口',1),
+('ALL','/error','错误处理接口',1),
+('GET','/api/public/**','公共API接口',1)
+ON DUPLICATE KEY UPDATE remark=VALUES(remark), enabled=VALUES(enabled);
 

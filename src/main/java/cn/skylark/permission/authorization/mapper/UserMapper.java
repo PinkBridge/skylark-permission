@@ -39,4 +39,13 @@ public interface UserMapper {
   void deleteUserRoles(@Param("userId") Long userId);
 
   void insertUserRoles(@Param("userId") Long userId, @Param("roleIds") List<Long> roleIds);
+
+  /**
+   * 更新用户密码
+   *
+   * @param userId   用户ID
+   * @param password 新密码
+   * @return 更新行数
+   */
+  int updatePassword(@Param("userId") Long userId, @Param("password") String password);
 }

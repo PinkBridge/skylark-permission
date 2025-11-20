@@ -50,5 +50,29 @@ public class UserService {
   public SysUser findByUsername(String username) {
     return userMapper.findByUsername(username);
   }
+
+  /**
+   * 重置密码
+   *
+   * @param userId      用户ID
+   * @param oldPassword 旧密码
+   * @param newPassword 新密码
+   * @return true-成功，false-失败
+   */
+  public boolean changePassword(Long userId, String oldPassword, String newPassword) {
+    SysUser user = userMapper.selectById(userId);
+    if (user == null) {
+      return false;
+    }
+
+    // 验证旧密码（当前使用NoOpPasswordEncoder，密码是明文存储）
+    if (oldPassword == null || !oldPassword.equals(user.getPassword())) {
+      return false;
+    }
+
+    // 更新密码
+    int result = userMapper.updatePassword(userId, newPassword);
+    return result > 0;
+  }
 }
 

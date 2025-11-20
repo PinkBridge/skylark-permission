@@ -7,6 +7,14 @@
         <result column="username" property="username" jdbcType="VARCHAR"/>
         <result column="password" property="password" jdbcType="VARCHAR"/>
         <result column="enabled" property="enabled" jdbcType="TINYINT"/>
+        <result column="gender" property="gender" jdbcType="VARCHAR"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR"/>
+        <result column="phone" property="phone" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="province" property="province" jdbcType="VARCHAR"/>
+        <result column="city" property="city" jdbcType="VARCHAR"/>
+        <result column="address" property="address" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -20,8 +28,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id
-        , username, password, enabled, create_time, update_time
+        id, username, password, enabled, gender, avatar, phone, email, status, province, city, address, create_time, update_time
     </sql>
 
     <select id="findByUsername" resultMap="BaseResultMap">
@@ -47,15 +54,24 @@
     </select>
 
     <insert id="insert" parameterType="cn.skylark.permission.authorization.entity.SysUser" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO sys_user(username, password, enabled)
-        VALUES (#{username}, #{password}, COALESCE(#{enabled}, 1))
+        INSERT INTO sys_user(username, password, enabled, gender, avatar, phone, email, status, province, city, address)
+        VALUES (#{username}, #{password}, COALESCE(#{enabled}, 1), #{gender}, #{avatar}, #{phone}, #{email}, 
+                COALESCE(#{status}, 'ACTIVE'), #{province}, #{city}, #{address})
     </insert>
 
     <update id="update" parameterType="cn.skylark.permission.authorization.entity.SysUser">
         UPDATE sys_user
         SET username = #{username},
             password = #{password},
-            enabled  = #{enabled}
+            enabled  = #{enabled},
+            gender = #{gender},
+            avatar = #{avatar},
+            phone = #{phone},
+            email = #{email},
+            status = #{status},
+            province = #{province},
+            city = #{city},
+            address = #{address}
         WHERE id = #{id}
     </update>
 
@@ -89,5 +105,11 @@
             (#{userId}, #{roleId})
         </foreach>
     </insert>
+
+    <update id="updatePassword">
+        UPDATE sys_user
+        SET password = #{password}
+        WHERE id = #{userId}
+    </update>
 
 </mapper>

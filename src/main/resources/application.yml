@@ -7,6 +7,10 @@ spring:
     username: dev
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
 
 oauth:
   signingKey: 374SJADK&*@!SHSAshhsdevops(90)

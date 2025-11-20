@@ -33,6 +33,46 @@ public class SysUser {
   private Boolean enabled;
 
   /**
+   * 性别：M-男，F-女
+   */
+  private String gender;
+
+  /**
+   * 照片URL
+   */
+  private String avatar;
+
+  /**
+   * 手机号码
+   */
+  private String phone;
+
+  /**
+   * 电子邮箱
+   */
+  private String email;
+
+  /**
+   * 状态：ACTIVE-活跃，INACTIVE-非活跃，LOCKED-锁定
+   */
+  private String status;
+
+  /**
+   * 省份
+   */
+  private String province;
+
+  /**
+   * 城市
+   */
+  private String city;
+
+  /**
+   * 详细地址
+   */
+  private String address;
+
+  /**
    * 创建时间
    */
   private LocalDateTime createTime;
