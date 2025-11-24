@@ -1,11 +1,17 @@
 package cn.skylark.permission.authorization.controller;
 
 import cn.skylark.permission.authorization.dto.ChangePasswordDTO;
+import cn.skylark.permission.authorization.dto.UpdateUserDTO;
 import cn.skylark.permission.authorization.dto.UserDTO;
+import cn.skylark.permission.authorization.dto.UserPageRequest;
+import cn.skylark.permission.authorization.dto.UserResponseDTO;
 import cn.skylark.permission.authorization.entity.SysRole;
 import cn.skylark.permission.authorization.entity.SysUser;
 import cn.skylark.permission.authorization.service.UserService;
+import cn.skylark.permission.utils.PageRequest;
+import cn.skylark.permission.utils.PageResult;
 import cn.skylark.permission.utils.Ret;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +19,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -23,8 +30,37 @@ public class UserController {
   private UserService userService;
 
   @GetMapping
-  public Ret<List<SysUser>> list() {
-    return Ret.data(userService.list());
+  public Ret<List<UserResponseDTO>> list() {
+    return Ret.data(userService.listDTO());
+  }
+
+  /**
+   * 分页查询用户列表（支持搜索）
+   *
+   * @param page       页码，从1开始，默认1
+   * @param size       每页大小，默认10
+   * @param username   用户名（模糊搜索）
+   * @param phone      手机号（模糊搜索）
+   * @param email      邮箱（模糊搜索）
+   * @param createTime 创建时间（查询此时间之前的数据，支持格式：ISO 8601如2025-11-22T16:00:00.000Z，或yyyy-MM-dd HH:mm:ss）
+   * @return 分页结果
+   */
+  @GetMapping("/page")
+  public Ret<PageResult<UserResponseDTO>> page(
+      @RequestParam(required = false, defaultValue = "1") Integer page,
+      @RequestParam(required = false, defaultValue = "10") Integer size,
+      @RequestParam(required = false) String username,
+      @RequestParam(required = false) String phone,
+      @RequestParam(required = false) String email,
+      @RequestParam(required = false) LocalDateTime createTime) {
+    UserPageRequest pageRequest = new UserPageRequest();
+    pageRequest.setPage(page);
+    pageRequest.setSize(size);
+    pageRequest.setUsername(username);
+    pageRequest.setPhone(phone);
+    pageRequest.setEmail(email);
+    pageRequest.setCreateTime(createTime);
+    return Ret.data(userService.pageDTOWithCondition(pageRequest));
   }
 
   /**
@@ -55,21 +91,22 @@ public class UserController {
     }
 
     List<SysRole> roles = userService.roles(user.getId());
+    UserResponseDTO userDTO = userService.getDTO(user.getId());
     UserDTO dto = new UserDTO();
-    dto.setUser(user);
+    dto.setUser(userDTO);
     dto.setRoles(roles);
     return Ret.data(dto);
   }
 
   @GetMapping("/{id}")
   public Ret<UserDTO> get(@PathVariable Long id) {
-    SysUser user = userService.get(id);
-    if (user == null) {
+    UserResponseDTO userDTO = userService.getDTO(id);
+    if (userDTO == null) {
       return Ret.fail(404, "user.not.found");
     }
     List<SysRole> roles = userService.roles(id);
     UserDTO dto = new UserDTO();
-    dto.setUser(user);
+    dto.setUser(userDTO);
     dto.setRoles(roles);
     return Ret.data(dto);
   }
@@ -80,9 +117,12 @@ public class UserController {
   }
 
   @PutMapping("/{id}")
-  public Ret<Integer> update(@PathVariable Long id, @RequestBody SysUser user) {
-    user.setId(id);
-    return Ret.data(userService.update(user));
+  public Ret<Integer> update(@PathVariable Long id, @RequestBody UpdateUserDTO updateUserDTO) {
+    UserResponseDTO userDTO = userService.getDTO(id);
+    if (userDTO == null) {
+      return Ret.fail(404, "user.not.found");
+    }
+    return Ret.data(userService.updateUserInfo(id, updateUserDTO));
   }
 
   @DeleteMapping("/{id}")

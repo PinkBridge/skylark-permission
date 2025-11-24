@@ -4,6 +4,7 @@ import cn.skylark.permission.utils.Ret;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -24,9 +25,17 @@ public class I18nConfig implements WebMvcConfigurer {
   @Resource
   private MessageSource messageSource;
 
+  @Resource
+  private LocalDateTimeConverter localDateTimeConverter;
+
   @Bean
   public LocaleResolver localeResolver() {
     return new CustomLocaleResolver();
+  }
+
+  @Override
+  public void addFormatters(FormatterRegistry registry) {
+    registry.addConverter(localDateTimeConverter);
   }
 
   @Bean

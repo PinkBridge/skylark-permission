@@ -50,7 +50,7 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM sys_user
-        ORDER BY id ASC
+        ORDER BY create_time DESC
     </select>
 
     <insert id="insert" parameterType="cn.skylark.permission.authorization.entity.SysUser" useGeneratedKeys="true" keyProperty="id">
@@ -109,6 +109,75 @@
     <update id="updatePassword">
         UPDATE sys_user
         SET password = #{password}
+        WHERE id = #{userId}
+    </update>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectPageWithCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        <where>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND email LIKE CONCAT('%', #{email}, '%')
+            </if>
+            <if test="createTime != null">
+                AND create_time &lt;= #{createTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        FROM sys_user
+    </select>
+
+    <select id="countWithCondition" resultType="long">
+        SELECT COUNT(*)
+        FROM sys_user
+        <where>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND email LIKE CONCAT('%', #{email}, '%')
+            </if>
+            <if test="createTime != null">
+                AND create_time &lt;= #{createTime}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateUserInfo">
+        UPDATE sys_user
+        SET username = #{user.username},
+            enabled  = #{user.enabled},
+            gender = #{user.gender},
+            avatar = #{user.avatar},
+            phone = #{user.phone},
+            email = #{user.email},
+            status = #{user.status},
+            province = #{user.province},
+            city = #{user.city},
+            address = #{user.address}
         WHERE id = #{userId}
     </update>
 

@@ -1,7 +1,6 @@
 package cn.skylark.permission.authorization.dto;
 
 import cn.skylark.permission.authorization.entity.SysRole;
-import cn.skylark.permission.authorization.entity.SysUser;
 import lombok.Data;
 
 import java.util.List;
@@ -15,9 +14,9 @@ import java.util.List;
 @Data
 public class UserDTO {
   /**
-   * 用户基本信息
+   * 用户基本信息（不包含密码）
    */
-  private SysUser user;
+  private UserResponseDTO user;
 
   /**
    * 用户角色列表

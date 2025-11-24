@@ -1,5 +1,6 @@
 package cn.skylark.permission.authorization.mapper;
 
+import cn.skylark.permission.authorization.dto.UpdateUserDTO;
 import cn.skylark.permission.authorization.entity.SysRole;
 import cn.skylark.permission.authorization.entity.SysUser;
 import org.apache.ibatis.annotations.Mapper;
@@ -48,4 +49,61 @@ public interface UserMapper {
    * @return 更新行数
    */
   int updatePassword(@Param("userId") Long userId, @Param("password") String password);
+
+  /**
+   * 分页查询用户列表
+   *
+   * @param offset 偏移量
+   * @param limit  限制数量
+   * @return 用户列表
+   */
+  List<SysUser> selectPage(@Param("offset") Integer offset, @Param("limit") Integer limit);
+
+  /**
+   * 分页查询用户列表（带条件）
+   *
+   * @param username   用户名（模糊搜索）
+   * @param phone      手机号（模糊搜索）
+   * @param email      邮箱（模糊搜索）
+   * @param createTime 创建时间（查询此时间之前的数据）
+   * @param offset     偏移量
+   * @param limit      限制数量
+   * @return 用户列表
+   */
+  List<SysUser> selectPageWithCondition(@Param("username") String username,
+                                         @Param("phone") String phone,
+                                         @Param("email") String email,
+                                         @Param("createTime") java.time.LocalDateTime createTime,
+                                         @Param("offset") Integer offset,
+                                         @Param("limit") Integer limit);
+
+  /**
+   * 统计用户总数
+   *
+   * @return 用户总数
+   */
+  Long countAll();
+
+  /**
+   * 统计用户总数（带条件）
+   *
+   * @param username   用户名（模糊搜索）
+   * @param phone      手机号（模糊搜索）
+   * @param email      邮箱（模糊搜索）
+   * @param createTime 创建时间（查询此时间之前的数据）
+   * @return 用户总数
+   */
+  Long countWithCondition(@Param("username") String username,
+                           @Param("phone") String phone,
+                           @Param("email") String email,
+                           @Param("createTime") java.time.LocalDateTime createTime);
+
+  /**
+   * 更新用户信息（不包含密码）
+   *
+   * @param userId 用户ID
+   * @param user   用户信息
+   * @return 更新行数
+   */
+  int updateUserInfo(@Param("userId") Long userId, @Param("user") UpdateUserDTO user);
 }
