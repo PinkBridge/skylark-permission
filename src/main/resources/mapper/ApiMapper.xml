@@ -21,7 +21,65 @@
     <select id="selectAll" resultMap="ApiResult">
         SELECT *
         FROM sys_api
-        ORDER BY id ASC
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectPage" resultMap="ApiResult">
+        SELECT *
+        FROM sys_api
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectPageWithCondition" resultMap="ApiResult">
+        SELECT *
+        FROM sys_api
+        <where>
+            <if test="method != null and method != ''">
+                AND method LIKE CONCAT('%', #{method}, '%')
+            </if>
+            <if test="path != null and path != ''">
+                AND path LIKE CONCAT('%', #{path}, '%')
+            </if>
+            <if test="permlabel != null and permlabel != ''">
+                AND permlabel LIKE CONCAT('%', #{permlabel}, '%')
+            </if>
+            <if test="moduleKey != null and moduleKey != ''">
+                AND module_key LIKE CONCAT('%', #{moduleKey}, '%')
+            </if>
+            <if test="createTime != null">
+                AND create_time &lt;= #{createTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        FROM sys_api
+    </select>
+
+    <select id="countWithCondition" resultType="long">
+        SELECT COUNT(*)
+        FROM sys_api
+        <where>
+            <if test="method != null and method != ''">
+                AND method LIKE CONCAT('%', #{method}, '%')
+            </if>
+            <if test="path != null and path != ''">
+                AND path LIKE CONCAT('%', #{path}, '%')
+            </if>
+            <if test="permlabel != null and permlabel != ''">
+                AND permlabel LIKE CONCAT('%', #{permlabel}, '%')
+            </if>
+            <if test="moduleKey != null and moduleKey != ''">
+                AND module_key LIKE CONCAT('%', #{moduleKey}, '%')
+            </if>
+            <if test="createTime != null">
+                AND create_time &lt;= #{createTime}
+            </if>
+        </where>
     </select>
 
     <insert id="insert" parameterType="cn.skylark.permission.authorization.entity.SysApi">
@@ -36,6 +94,15 @@
             permlabel  = #{permlabel},
             module_key = #{moduleKey}
         WHERE id = #{id}
+    </update>
+
+    <update id="updateApiInfo">
+        UPDATE sys_api
+        SET method     = #{api.method},
+            path       = #{api.path},
+            permlabel  = #{api.permlabel},
+            module_key = #{api.moduleKey}
+        WHERE id = #{apiId}
     </update>
 
     <delete id="deleteById" parameterType="long">

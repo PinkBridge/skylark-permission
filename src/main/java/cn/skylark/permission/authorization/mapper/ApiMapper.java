@@ -30,4 +30,65 @@ public interface ApiMapper {
                              @Param("permlabel") String permlabel);
 
   List<SysApi> selectByRoleNames(@Param("roleNames") List<String> roleNames);
+
+  /**
+   * 分页查询API列表
+   *
+   * @param offset 偏移量
+   * @param limit  限制数量
+   * @return API列表
+   */
+  List<SysApi> selectPage(@Param("offset") Integer offset, @Param("limit") Integer limit);
+
+  /**
+   * 分页查询API列表（带条件）
+   *
+   * @param method      HTTP方法（模糊搜索）
+   * @param path        API路径（模糊搜索）
+   * @param permlabel   权限标签（模糊搜索）
+   * @param moduleKey   模块键（模糊搜索）
+   * @param createTime  创建时间（查询此时间之前的数据）
+   * @param offset      偏移量
+   * @param limit       限制数量
+   * @return API列表
+   */
+  List<SysApi> selectPageWithCondition(@Param("method") String method,
+                                         @Param("path") String path,
+                                         @Param("permlabel") String permlabel,
+                                         @Param("moduleKey") String moduleKey,
+                                         @Param("createTime") java.time.LocalDateTime createTime,
+                                         @Param("offset") Integer offset,
+                                         @Param("limit") Integer limit);
+
+  /**
+   * 统计API总数
+   *
+   * @return API总数
+   */
+  Long countAll();
+
+  /**
+   * 统计API总数（带条件）
+   *
+   * @param method      HTTP方法（模糊搜索）
+   * @param path        API路径（模糊搜索）
+   * @param permlabel   权限标签（模糊搜索）
+   * @param moduleKey   模块键（模糊搜索）
+   * @param createTime  创建时间（查询此时间之前的数据）
+   * @return API总数
+   */
+  Long countWithCondition(@Param("method") String method,
+                           @Param("path") String path,
+                           @Param("permlabel") String permlabel,
+                           @Param("moduleKey") String moduleKey,
+                           @Param("createTime") java.time.LocalDateTime createTime);
+
+  /**
+   * 更新API信息
+   *
+   * @param apiId API ID
+   * @param api   API信息
+   * @return 更新行数
+   */
+  int updateApiInfo(@Param("apiId") Long apiId, @Param("api") cn.skylark.permission.authorization.dto.UpdateApiDTO api);
 }
