@@ -1,11 +1,17 @@
 package cn.skylark.permission.authorization.service;
 
+import cn.skylark.permission.authorization.dto.MenuResponseDTO;
+import cn.skylark.permission.authorization.dto.MenuTreeNode;
+import cn.skylark.permission.authorization.dto.UpdateMenuDTO;
 import cn.skylark.permission.authorization.entity.SysMenu;
 import cn.skylark.permission.authorization.mapper.MenuMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class MenuService {
@@ -44,19 +50,188 @@ public class MenuService {
     }
   }
 
-  public List<MenuNode> userMenuTree(String username) {
-    List<SysMenu> menus = menuMapper.selectMenusByUsername(username);
+  /**
+   * 获取菜单列表（DTO）
+   *
+   * @return 菜单列表
+   */
+  public List<MenuResponseDTO> listDTO() {
+    List<SysMenu> menus = menuMapper.selectAll();
+    // 构建菜单ID到菜单的映射，用于快速查找父菜单
+    Map<Long, SysMenu> menuMap = new HashMap<>();
+    for (SysMenu menu : menus) {
+      menuMap.put(menu.getId(), menu);
+    }
+    return menus.stream().map(menu -> convertToDTO(menu, menuMap)).collect(java.util.stream.Collectors.toList());
+  }
+
+  /**
+   * 获取菜单信息（DTO）
+   *
+   * @param id 菜单ID
+   * @return 菜单信息
+   */
+  public MenuResponseDTO getDTO(Long id) {
+    SysMenu menu = menuMapper.selectById(id);
+    if (menu == null) {
+      return null;
+    }
+    // 如果有父菜单，查询父菜单信息
+    Map<Long, SysMenu> menuMap = new HashMap<>();
+    if (menu.getParentId() != null) {
+      SysMenu parentMenu = menuMapper.selectById(menu.getParentId());
+      if (parentMenu != null) {
+        menuMap.put(parentMenu.getId(), parentMenu);
+      }
+    }
+    return convertToDTO(menu, menuMap);
+  }
+
+  /**
+   * 更新菜单信息
+   *
+   * @param menuId 菜单ID
+   * @param dto    更新菜单信息DTO
+   * @return 更新行数
+   */
+  public int updateMenuInfo(Long menuId, UpdateMenuDTO dto) {
+    return menuMapper.updateMenuInfo(menuId, dto);
+  }
+
+  /**
+   * 获取所有菜单树（不区分用户）
+   *
+   * @param name 菜单名称（模糊搜索，可选）
+   * @return 菜单树
+   */
+  public List<MenuTreeNode> menuTree(String name) {
+    List<SysMenu> menus = menuMapper.selectAll();
+    if (StringUtils.hasText(name)) {
+      menus = filterMenusByName(menus, name);
+    }
     return buildTree(menus);
   }
 
-  private List<MenuNode> buildTree(List<SysMenu> menus) {
-    Map<Long, MenuNode> map = new LinkedHashMap<>();
+  /**
+   * 获取当前用户的菜单树
+   *
+   * @param username 用户名
+   * @param name     菜单名称（模糊搜索，可选）
+   * @return 菜单树
+   */
+  public List<MenuTreeNode> userMenuTree(String username, String name) {
+    List<SysMenu> menus = menuMapper.selectMenusByUsername(username);
+    if (StringUtils.hasText(name)) {
+      menus = filterMenusByName(menus, name);
+    }
+    return buildTree(menus);
+  }
+
+  /**
+   * 根据名称过滤菜单，并保留树结构（包含匹配节点的所有父节点和子节点）
+   *
+   * @param menus 菜单列表
+   * @param name  搜索名称
+   * @return 过滤后的菜单列表
+   */
+  private List<SysMenu> filterMenusByName(List<SysMenu> menus, String name) {
+    if (menus == null || menus.isEmpty()) {
+      return menus;
+    }
+
+    // 构建菜单映射
+    Map<Long, SysMenu> menuMap = new HashMap<>();
+    for (SysMenu menu : menus) {
+      menuMap.put(menu.getId(), menu);
+    }
+
+    // 找出名称匹配的菜单
+    Set<Long> matchedMenuIds = new HashSet<>();
+    for (SysMenu menu : menus) {
+      if (menu.getName() != null && menu.getName().contains(name)) {
+        matchedMenuIds.add(menu.getId());
+      }
+    }
+
+    if (matchedMenuIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // 收集需要包含的菜单ID（匹配的菜单 + 所有父节点 + 所有子节点）
+    Set<Long> includedMenuIds = new HashSet<>(matchedMenuIds);
+
+    // 添加所有父节点
+    for (Long menuId : matchedMenuIds) {
+      addParentMenus(menuId, menuMap, includedMenuIds);
+    }
+
+    // 添加所有子节点
+    for (Long menuId : matchedMenuIds) {
+      addChildMenus(menuId, menuMap, includedMenuIds);
+    }
+
+    // 返回过滤后的菜单列表
+    return menus.stream()
+            .filter(menu -> includedMenuIds.contains(menu.getId()))
+            .collect(Collectors.toList());
+  }
+
+  /**
+   * 递归添加父菜单
+   *
+   * @param menuId         菜单ID
+   * @param menuMap        菜单映射
+   * @param includedMenuIds 已包含的菜单ID集合
+   */
+  private void addParentMenus(Long menuId, Map<Long, SysMenu> menuMap, Set<Long> includedMenuIds) {
+    SysMenu menu = menuMap.get(menuId);
+    if (menu == null || menu.getParentId() == null) {
+      return;
+    }
+    if (!includedMenuIds.contains(menu.getParentId())) {
+      includedMenuIds.add(menu.getParentId());
+      addParentMenus(menu.getParentId(), menuMap, includedMenuIds);
+    }
+  }
+
+  /**
+   * 递归添加子菜单
+   *
+   * @param menuId         菜单ID
+   * @param menuMap        菜单映射
+   * @param includedMenuIds 已包含的菜单ID集合
+   */
+  private void addChildMenus(Long menuId, Map<Long, SysMenu> menuMap, Set<Long> includedMenuIds) {
+    for (SysMenu menu : menuMap.values()) {
+      if (menu.getParentId() != null && menu.getParentId().equals(menuId)) {
+        if (!includedMenuIds.contains(menu.getId())) {
+          includedMenuIds.add(menu.getId());
+          addChildMenus(menu.getId(), menuMap, includedMenuIds);
+        }
+      }
+    }
+  }
+
+  /**
+   * 构建菜单树
+   *
+   * @param menus 菜单列表
+   * @return 菜单树
+   */
+  private List<MenuTreeNode> buildTree(List<SysMenu> menus) {
+    // 构建菜单ID到菜单实体的映射，用于查找父菜单
+    Map<Long, SysMenu> menuMap = new HashMap<>();
+    for (SysMenu menu : menus) {
+      menuMap.put(menu.getId(), menu);
+    }
+    
+    Map<Long, MenuTreeNode> map = new LinkedHashMap<>();
     for (SysMenu m : menus) {
-      MenuNode n = toNode(m);
+      MenuTreeNode n = toNode(m, menuMap);
       map.put(n.getId(), n);
     }
-    List<MenuNode> roots = new ArrayList<>();
-    for (MenuNode n : map.values()) {
+    List<MenuTreeNode> roots = new ArrayList<>();
+    for (MenuTreeNode n : map.values()) {
       if (n.getParentId() == null || !map.containsKey(n.getParentId())) {
         roots.add(n);
       } else {
@@ -67,109 +242,88 @@ public class MenuService {
     return roots;
   }
 
-  private void sort(List<MenuNode> list) {
-    list.sort(Comparator.comparing(MenuNode::getSort, Comparator.nullsLast(Integer::compareTo))
-            .thenComparing(MenuNode::getId));
-    for (MenuNode n : list) {
+  /**
+   * 对菜单树进行排序
+   *
+   * @param list 菜单节点列表
+   */
+  private void sort(List<MenuTreeNode> list) {
+    list.sort(Comparator.comparing(MenuTreeNode::getSort, Comparator.nullsLast(Integer::compareTo))
+            .thenComparing(MenuTreeNode::getId));
+    for (MenuTreeNode n : list) {
       sort(n.getChildren());
     }
   }
 
-  private MenuNode toNode(SysMenu m) {
-    MenuNode n = new MenuNode();
+  /**
+   * 将SysMenu转换为MenuTreeNode
+   *
+   * @param m       菜单实体
+   * @param menuMap 菜单映射（用于查找父菜单）
+   * @return 菜单树节点
+   */
+  private MenuTreeNode toNode(SysMenu m, Map<Long, SysMenu> menuMap) {
+    MenuTreeNode n = new MenuTreeNode();
     n.setId(m.getId());
     n.setParentId(m.getParentId());
     n.setName(m.getName());
     n.setPath(m.getPath());
     n.setIcon(m.getIcon());
     n.setSort(m.getSort());
-    n.setHidden(Boolean.TRUE.equals(m.getHidden()));
+    n.setHidden(m.getHidden());
     n.setModuleKey(m.getModuleKey());
+    n.setCreateTime(m.getCreateTime());
+    n.setUpdateTime(m.getUpdateTime());
     n.setChildren(new ArrayList<>());
+    
+    // 设置父菜单信息
+    if (m.getParentId() != null && menuMap.containsKey(m.getParentId())) {
+      SysMenu parentMenu = menuMap.get(m.getParentId());
+      n.setParentMenu(convertToParentMenuDTO(parentMenu));
+    }
+    
     return n;
   }
 
-  public static class MenuNode {
-    private Long id;
-    private Long parentId;
-    private String name;
-    private String path;
-    private String icon;
-    private Integer sort;
-    private boolean hidden;
-    private String moduleKey;
-    private List<MenuNode> children;
-
-    public Long getId() {
-      return id;
+  /**
+   * 将SysMenu转换为MenuResponseDTO
+   *
+   * @param menu    菜单实体
+   * @param menuMap 菜单映射（用于查找父菜单）
+   * @return 菜单响应DTO
+   */
+  private MenuResponseDTO convertToDTO(SysMenu menu, Map<Long, SysMenu> menuMap) {
+    if (menu == null) {
+      return null;
     }
-
-    public void setId(Long id) {
-      this.id = id;
+    MenuResponseDTO dto = new MenuResponseDTO();
+    BeanUtils.copyProperties(menu, dto);
+    
+    // 设置父菜单信息
+    if (menu.getParentId() != null && menuMap.containsKey(menu.getParentId())) {
+      SysMenu parentMenu = menuMap.get(menu.getParentId());
+      dto.setParentMenu(convertToParentMenuDTO(parentMenu));
     }
+    
+    return dto;
+  }
 
-    public Long getParentId() {
-      return parentId;
+  /**
+   * 将SysMenu转换为ParentMenuDTO
+   *
+   * @param menu 菜单实体
+   * @return 父菜单DTO
+   */
+  private cn.skylark.permission.authorization.dto.ParentMenuDTO convertToParentMenuDTO(SysMenu menu) {
+    if (menu == null) {
+      return null;
     }
-
-    public void setParentId(Long parentId) {
-      this.parentId = parentId;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public void setName(String name) {
-      this.name = name;
-    }
-
-    public String getPath() {
-      return path;
-    }
-
-    public void setPath(String path) {
-      this.path = path;
-    }
-
-    public String getIcon() {
-      return icon;
-    }
-
-    public void setIcon(String icon) {
-      this.icon = icon;
-    }
-
-    public Integer getSort() {
-      return sort;
-    }
-
-    public void setSort(Integer sort) {
-      this.sort = sort;
-    }
-
-    public boolean getHidden() {
-      return hidden;
-    }
-
-    public void setHidden(boolean hidden) {
-      this.hidden = hidden;
-    }
-
-    public String getModuleKey() {
-      return moduleKey;
-    }
-
-    public void setModuleKey(String moduleKey) {
-      this.moduleKey = moduleKey;
-    }
-
-    public List<MenuNode> getChildren() {
-      return children;
-    }
-
-    public void setChildren(List<MenuNode> children) {
-      this.children = children;
-    }
+    cn.skylark.permission.authorization.dto.ParentMenuDTO dto = new cn.skylark.permission.authorization.dto.ParentMenuDTO();
+    dto.setId(menu.getId());
+    dto.setName(menu.getName());
+    dto.setPath(menu.getPath());
+    dto.setIcon(menu.getIcon());
+    dto.setModuleKey(menu.getModuleKey());
+    return dto;
   }
 }

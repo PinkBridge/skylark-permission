@@ -16,15 +16,21 @@
     </resultMap>
 
     <select id="selectById" parameterType="long" resultMap="MenuResult">
-        SELECT *
+        SELECT
+        <include refid="Base_Column_List"/>
         FROM sys_menu
         WHERE id = #{id}
     </select>
 
+    <sql id="Base_Column_List">
+        id, parent_id, name, path, icon, sort, hidden, module_key, create_time, update_time
+    </sql>
+
     <select id="selectAll" resultMap="MenuResult">
-        SELECT *
+        SELECT
+        <include refid="Base_Column_List"/>
         FROM sys_menu
-        ORDER BY parent_id ASC, sort ASC, id ASC
+        ORDER BY create_time DESC
     </select>
 
     <insert id="insert" parameterType="cn.skylark.permission.authorization.entity.SysMenu">
@@ -42,6 +48,18 @@
             hidden     = #{hidden},
             module_key = #{moduleKey}
         WHERE id = #{id}
+    </update>
+
+    <update id="updateMenuInfo">
+        UPDATE sys_menu
+        SET parent_id = #{menu.parentId},
+            name = #{menu.name},
+            path = #{menu.path},
+            icon = #{menu.icon},
+            sort = #{menu.sort},
+            hidden = #{menu.hidden},
+            module_key = #{menu.moduleKey}
+        WHERE id = #{menuId}
     </update>
 
     <delete id="deleteById" parameterType="long">

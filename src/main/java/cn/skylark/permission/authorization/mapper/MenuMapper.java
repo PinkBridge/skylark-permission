@@ -25,4 +25,13 @@ public interface MenuMapper {
   int bindRoleMenus(@Param("roleId") Long roleId, @Param("menuIds") List<Long> menuIds);
 
   List<SysMenu> selectMenusByUsername(@Param("username") String username);
+
+  /**
+   * 更新菜单信息
+   *
+   * @param menuId 菜单ID
+   * @param menu   菜单信息
+   * @return 更新行数
+   */
+  int updateMenuInfo(@Param("menuId") Long menuId, @Param("menu") cn.skylark.permission.authorization.dto.UpdateMenuDTO menu);
 }
