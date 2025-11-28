@@ -284,5 +284,30 @@ ALTER TABLE `oauth_client_details`
 ADD COLUMN `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 ADD COLUMN `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';
 
+-- 系统租户表
+CREATE TABLE IF NOT EXISTS `sys_tenant` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '租户ID',
+  `name` VARCHAR(100) NOT NULL COMMENT '租户名称',
+  `code` VARCHAR(50) NOT NULL COMMENT '租户编码（唯一）',
+  `contact_name` VARCHAR(50) DEFAULT NULL COMMENT '联系人姓名',
+  `contact_phone` VARCHAR(20) DEFAULT NULL COMMENT '联系人电话',
+  `contact_email` VARCHAR(100) DEFAULT NULL COMMENT '联系人邮箱',
+  `domain` VARCHAR(200) DEFAULT NULL COMMENT '租户访问域名',
+  `logo` VARCHAR(500) DEFAULT NULL COMMENT '租户Logo地址',
+  `address` VARCHAR(255) DEFAULT NULL COMMENT '租户地址',
+  `description` VARCHAR(500) DEFAULT NULL COMMENT '租户描述',
+  `status` VARCHAR(20) DEFAULT 'ACTIVE' COMMENT '状态：ACTIVE-启用，INACTIVE-禁用',
+  `expire_time` DATETIME DEFAULT NULL COMMENT '租户到期时间',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_tenant_code` (`code`),
+  KEY `idx_tenant_name` (`name`),
+  KEY `idx_tenant_status` (`status`),
+  KEY `idx_tenant_domain` (`domain`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统租户表';
 
+-- 添加系统名称字段
+ALTER TABLE `sys_tenant` 
+ADD COLUMN `system_name` VARCHAR(100) DEFAULT NULL COMMENT '系统名称' AFTER `name`;
 

@@ -73,6 +73,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/oauth/token").permitAll()
             .antMatchers("/oauth/authorize").authenticated()
             .antMatchers("/oauth/**").permitAll()
+            .antMatchers("/api/permission/tenants/domain/**").permitAll()
             .anyRequest().access("@rbacService.hasPermission(request,authentication)")
             .and()
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
