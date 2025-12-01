@@ -94,13 +94,23 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
   `province` VARCHAR(50) DEFAULT NULL COMMENT '省份',
   `city` VARCHAR(50) DEFAULT NULL COMMENT '城市',
   `address` VARCHAR(255) DEFAULT NULL COMMENT '详细地址',
+  `tenant_id` BIGINT(20) DEFAULT NULL COMMENT '租户ID',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_username` (`username`),
   KEY `idx_phone` (`phone`),
-  KEY `idx_email` (`email`)
+  KEY `idx_email` (`email`),
+  KEY `idx_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统用户表';
+
+-- 为已存在的表添加租户ID字段（如果表已存在）
+ALTER TABLE `sys_user` 
+ADD COLUMN `tenant_id` BIGINT(20) DEFAULT NULL COMMENT '租户ID' AFTER `address`,
+ADD KEY `idx_tenant_id` (`tenant_id`);
+
+-- 初始化现有数据的租户ID为101
+UPDATE `sys_user` SET `tenant_id` = 101 WHERE `tenant_id` IS NULL;
 
 -- 为已存在的表添加新字段（如果表已存在，需要手动执行或使用存储过程检查）
 -- 注意：MySQL不支持IF NOT EXISTS，如果字段已存在会报错，需要手动检查或使用存储过程

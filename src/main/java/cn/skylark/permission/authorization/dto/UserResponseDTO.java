@@ -68,6 +68,11 @@ public class UserResponseDTO {
   private String address;
 
   /**
+   * 租户ID
+   */
+  private Long tenantId;
+
+  /**
    * 创建时间
    */
   private LocalDateTime createTime;

@@ -1,6 +1,7 @@
 package cn.skylark.permission.authentication;
 
 import cn.skylark.permission.authentication.filter.JwtAuthenticationFilter;
+import cn.skylark.permission.authorization.filter.TenantFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,6 +37,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Resource
   private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+  @Resource
+  private TenantFilter tenantFilter;
 
   @Resource
   private AccessDeniedHandler customAccessDeniedHandler;
@@ -76,6 +80,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/api/permission/tenants/domain/**").permitAll()
             .anyRequest().access("@rbacService.hasPermission(request,authentication)")
             .and()
+            .addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .formLogin()
             .and()
