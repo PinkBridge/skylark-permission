@@ -1,7 +1,7 @@
 package cn.skylark.permission.authentication;
 
 import cn.skylark.permission.authentication.filter.JwtAuthenticationFilter;
-import cn.skylark.permission.authorization.filter.TenantFilter;
+import cn.skylark.permission.authentication.filter.TenantFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

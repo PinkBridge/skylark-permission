@@ -321,3 +321,24 @@ CREATE TABLE IF NOT EXISTS `sys_tenant` (
 ALTER TABLE `sys_tenant` 
 ADD COLUMN `system_name` VARCHAR(100) DEFAULT NULL COMMENT '系统名称' AFTER `name`;
 
+-- 资源表
+CREATE TABLE IF NOT EXISTS `sys_resource` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '资源ID',
+  `name` VARCHAR(255) NOT NULL COMMENT '文件名',
+  `original_name` VARCHAR(255) NOT NULL COMMENT '原始文件名',
+  `file_path` VARCHAR(500) NOT NULL COMMENT '文件存储路径',
+  `file_type` VARCHAR(20) DEFAULT 'OTHER' COMMENT '文件类型：IMAGE-图片，DOCUMENT-文档，VIDEO-视频，AUDIO-音频，OTHER-其他',
+  `file_size` BIGINT(20) DEFAULT 0 COMMENT '文件大小（字节）',
+  `mime_type` VARCHAR(100) DEFAULT NULL COMMENT 'MIME类型',
+  `url` VARCHAR(500) DEFAULT NULL COMMENT '访问URL',
+  `description` VARCHAR(500) DEFAULT NULL COMMENT '描述',
+  `tenant_id` BIGINT(20) DEFAULT NULL COMMENT '租户ID',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_name` (`name`),
+  KEY `idx_file_type` (`file_type`),
+  KEY `idx_tenant_id` (`tenant_id`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统资源表';
+

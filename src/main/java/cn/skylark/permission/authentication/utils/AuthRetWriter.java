@@ -41,4 +41,9 @@ public class AuthRetWriter {
     Ret<Object> fail = Ret.fail(HttpServletResponse.SC_UNAUTHORIZED, "check.jwt.exception");
     ret(response, HttpServletResponse.SC_UNAUTHORIZED, fail);
   }
+
+  public static void retCheckTenantException(HttpServletResponse response) throws IOException {
+    Ret<Object> fail = Ret.fail(HttpServletResponse.SC_UNAUTHORIZED, "tenant.available.exception");
+    ret(response, HttpServletResponse.SC_UNAUTHORIZED, fail);
+  }
 }

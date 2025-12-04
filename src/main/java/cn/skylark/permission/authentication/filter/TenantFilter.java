@@ -1,8 +1,10 @@
-package cn.skylark.permission.authorization.filter;
+package cn.skylark.permission.authentication.filter;
 
+import cn.skylark.permission.authentication.utils.AuthRetWriter;
 import cn.skylark.permission.authorization.context.TenantContext;
+import cn.skylark.permission.authorization.dto.TenantResponseDTO;
 import cn.skylark.permission.authorization.entity.SysTenant;
-import cn.skylark.permission.authorization.mapper.TenantMapper;
+import cn.skylark.permission.authorization.service.TenantService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -14,6 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 /**
  * 租户过滤器
@@ -32,7 +35,7 @@ public class TenantFilter extends OncePerRequestFilter {
   private static final String TENANT_ID_HEADER = "X-Tenant-Id";
 
   @Resource
-  private TenantMapper tenantMapper;
+  private TenantService tenantService;
 
   /**
    * 从请求头提取租户ID
@@ -69,22 +72,29 @@ public class TenantFilter extends OncePerRequestFilter {
     String domain = host.split(":")[0];
 
     // 查询租户信息
-    SysTenant tenant = tenantMapper.selectByDomain(domain);
-    if (tenant != null) {
-      return tenant.getId();
+    TenantResponseDTO dtoByDomain = tenantService.getDTOByDomain(domain);
+    if (dtoByDomain != null) {
+      return dtoByDomain.getId();
     }
 
     // 如果直接匹配失败，尝试匹配子域名
     // 例如：www.bjtech.com 匹配 bjtech.com
     if (domain.startsWith("www.")) {
       String domainWithoutWww = domain.substring(4);
-      tenant = tenantMapper.selectByDomain(domainWithoutWww);
-      if (tenant != null) {
-        return tenant.getId();
+      dtoByDomain = tenantService.getDTOByDomain(domainWithoutWww);
+      if (dtoByDomain != null) {
+        return dtoByDomain.getId();
       }
     }
 
     return null;
+  }
+
+  private boolean tenantAvailable(Long tenantId) {
+    SysTenant sysTenant = tenantService.get(tenantId);
+    return sysTenant != null
+            && "ACTIVE".equals(sysTenant.getStatus())
+            && LocalDateTime.now().isBefore(sysTenant.getExpireTime());
   }
 
   @Override
@@ -101,6 +111,9 @@ public class TenantFilter extends OncePerRequestFilter {
 
       // 设置租户上下文
       if (tenantId != null) {
+        if (!tenantAvailable(tenantId)) {
+          AuthRetWriter.retCheckTenantException(response);
+        }
         TenantContext.setTenantId(tenantId);
         log.debug("Tenant ID set from request: {}", tenantId);
       } else {

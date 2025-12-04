@@ -52,7 +52,8 @@ public class TenantInterceptor implements Interceptor {
    * 如果为空，则对所有表生效
    */
   private static final String[] TENANT_TABLES = {
-      "sys_user", 
+      "sys_user",
+      "sys_resource"
       // "sys_role", 
       // "sys_menu", 
       // "sys_api", 
