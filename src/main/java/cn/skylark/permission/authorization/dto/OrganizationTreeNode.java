@@ -1,21 +1,33 @@
-package cn.skylark.permission.authorization.entity;
+package cn.skylark.permission.authorization.dto;
 
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 系统组织实体
+ * 组织树节点DTO
  *
  * @author yaomianwei
  * @since 2025/11/3
  */
 @Data
-public class SysOrganization {
+public class OrganizationTreeNode {
   /**
    * 组织ID
    */
   private Long id;
+
+  /**
+   * 父组织ID
+   */
+  private Long parentId;
+
+  /**
+   * 父组织信息
+   */
+  private ParentOrganizationDTO parentOrganization;
 
   /**
    * 组织名称
@@ -23,14 +35,9 @@ public class SysOrganization {
   private String name;
 
   /**
-   * 组织编码（唯一）
+   * 组织编码
    */
   private String code;
-
-  /**
-   * 父组织ID
-   */
-  private Long parentId;
 
   /**
    * 组织类型：COMPANY-公司，DEPARTMENT-部门，TEAM-小组
@@ -78,11 +85,6 @@ public class SysOrganization {
   private String status;
 
   /**
-   * 租户ID
-   */
-  private Long tenantId;
-
-  /**
    * 创建时间
    */
   private LocalDateTime createTime;
@@ -91,5 +93,10 @@ public class SysOrganization {
    * 更新时间
    */
   private LocalDateTime updateTime;
+
+  /**
+   * 子组织列表
+   */
+  private List<OrganizationTreeNode> children = new ArrayList<>();
 }
 

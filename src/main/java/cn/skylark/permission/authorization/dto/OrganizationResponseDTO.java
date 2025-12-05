@@ -83,6 +83,11 @@ public class OrganizationResponseDTO {
   private String status;
 
   /**
+   * 租户ID
+   */
+  private Long tenantId;
+
+  /**
    * 创建时间
    */
   private LocalDateTime createTime;

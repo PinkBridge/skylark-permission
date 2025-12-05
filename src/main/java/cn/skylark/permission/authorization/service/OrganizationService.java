@@ -1,7 +1,9 @@
 package cn.skylark.permission.authorization.service;
 
+import cn.skylark.permission.authorization.context.TenantContext;
 import cn.skylark.permission.authorization.dto.OrganizationPageRequest;
 import cn.skylark.permission.authorization.dto.OrganizationResponseDTO;
+import cn.skylark.permission.authorization.dto.OrganizationTreeNode;
 import cn.skylark.permission.authorization.dto.ParentOrganizationDTO;
 import cn.skylark.permission.authorization.dto.UpdateOrganizationDTO;
 import cn.skylark.permission.authorization.entity.SysOrganization;
@@ -13,9 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -54,6 +54,9 @@ public class OrganizationService {
   }
 
   public int create(SysOrganization organization) {
+    if (organization.getTenantId() == null) {
+      organization.setTenantId(TenantContext.getTenantId());
+    }
     return organizationMapper.insert(organization);
   }
 
@@ -230,6 +233,189 @@ public class OrganizationService {
     dto.setCode(organization.getCode());
     dto.setType(organization.getType());
     return dto;
+  }
+
+  /**
+   * 获取组织树
+   *
+   * @param name 组织名称（模糊搜索，可选）
+   * @return 组织树
+   */
+  public List<OrganizationTreeNode> organizationTree(String name) {
+    List<SysOrganization> organizations = organizationMapper.selectAll();
+    if (StringUtils.hasText(name)) {
+      organizations = filterOrganizationsByName(organizations, name);
+    }
+    return buildTree(organizations);
+  }
+
+  /**
+   * 根据名称过滤组织，并保留树结构（包含匹配节点的所有父节点和子节点）
+   *
+   * @param organizations 组织列表
+   * @param name          搜索名称
+   * @return 过滤后的组织列表
+   */
+  private List<SysOrganization> filterOrganizationsByName(List<SysOrganization> organizations, String name) {
+    if (organizations == null || organizations.isEmpty()) {
+      return organizations;
+    }
+
+    // 构建组织映射
+    Map<Long, SysOrganization> organizationMap = new HashMap<>();
+    for (SysOrganization org : organizations) {
+      organizationMap.put(org.getId(), org);
+    }
+
+    // 找出名称匹配的组织
+    Set<Long> matchedOrgIds = new HashSet<>();
+    for (SysOrganization org : organizations) {
+      if (org.getName() != null && org.getName().contains(name)) {
+        matchedOrgIds.add(org.getId());
+      }
+    }
+
+    if (matchedOrgIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // 收集需要包含的组织ID（匹配的组织 + 所有父节点 + 所有子节点）
+    Set<Long> includedOrgIds = new HashSet<>(matchedOrgIds);
+
+    // 添加所有父节点
+    for (Long orgId : matchedOrgIds) {
+      addParentOrganizations(orgId, organizationMap, includedOrgIds);
+    }
+
+    // 添加所有子节点
+    for (Long orgId : matchedOrgIds) {
+      addChildOrganizations(orgId, organizationMap, includedOrgIds);
+    }
+
+    // 返回过滤后的组织列表
+    return organizations.stream()
+        .filter(org -> includedOrgIds.contains(org.getId()))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * 递归添加父组织
+   *
+   * @param orgId          组织ID
+   * @param organizationMap 组织映射
+   * @param includedOrgIds 已包含的组织ID集合
+   */
+  private void addParentOrganizations(Long orgId, Map<Long, SysOrganization> organizationMap, Set<Long> includedOrgIds) {
+    SysOrganization org = organizationMap.get(orgId);
+    if (org == null || org.getParentId() == null) {
+      return;
+    }
+    if (!includedOrgIds.contains(org.getParentId())) {
+      includedOrgIds.add(org.getParentId());
+      addParentOrganizations(org.getParentId(), organizationMap, includedOrgIds);
+    }
+  }
+
+  /**
+   * 递归添加子组织
+   *
+   * @param orgId          组织ID
+   * @param organizationMap 组织映射
+   * @param includedOrgIds 已包含的组织ID集合
+   */
+  private void addChildOrganizations(Long orgId, Map<Long, SysOrganization> organizationMap, Set<Long> includedOrgIds) {
+    for (SysOrganization org : organizationMap.values()) {
+      if (org.getParentId() != null && org.getParentId().equals(orgId)) {
+        if (!includedOrgIds.contains(org.getId())) {
+          includedOrgIds.add(org.getId());
+          addChildOrganizations(org.getId(), organizationMap, includedOrgIds);
+        }
+      }
+    }
+  }
+
+  /**
+   * 构建组织树
+   *
+   * @param organizations 组织列表
+   * @return 组织树
+   */
+  private List<OrganizationTreeNode> buildTree(List<SysOrganization> organizations) {
+    // 构建组织ID到组织实体的映射，用于查找父组织
+    Map<Long, SysOrganization> organizationMap = new HashMap<>();
+    for (SysOrganization org : organizations) {
+      organizationMap.put(org.getId(), org);
+    }
+
+    Map<Long, OrganizationTreeNode> map = new LinkedHashMap<>();
+    for (SysOrganization org : organizations) {
+      OrganizationTreeNode node = toNode(org, organizationMap);
+      map.put(node.getId(), node);
+    }
+
+    List<OrganizationTreeNode> roots = new ArrayList<>();
+    for (OrganizationTreeNode node : map.values()) {
+      if (node.getParentId() == null || !map.containsKey(node.getParentId())) {
+        roots.add(node);
+      } else {
+        map.get(node.getParentId()).getChildren().add(node);
+      }
+    }
+
+    // 按sort排序
+    sortTree(roots);
+    return roots;
+  }
+
+  /**
+   * 将SysOrganization转换为OrganizationTreeNode
+   *
+   * @param organization      组织实体
+   * @param organizationMap   组织映射（用于查找父组织）
+   * @return 组织树节点
+   */
+  private OrganizationTreeNode toNode(SysOrganization organization, Map<Long, SysOrganization> organizationMap) {
+    OrganizationTreeNode node = new OrganizationTreeNode();
+    BeanUtils.copyProperties(organization, node);
+
+    // 设置父组织信息
+    if (organization.getParentId() != null && organizationMap.containsKey(organization.getParentId())) {
+      SysOrganization parentOrg = organizationMap.get(organization.getParentId());
+      node.setParentOrganization(convertToParentOrganizationDTO(parentOrg));
+    }
+
+    return node;
+  }
+
+  /**
+   * 递归排序树节点
+   *
+   * @param nodes 树节点列表
+   */
+  private void sortTree(List<OrganizationTreeNode> nodes) {
+    if (nodes == null || nodes.isEmpty()) {
+      return;
+    }
+    // 按sort字段排序，如果sort为null则按id排序
+    nodes.sort((a, b) -> {
+      Integer sortA = a.getSort();
+      Integer sortB = b.getSort();
+      if (sortA != null && sortB != null) {
+        return sortA.compareTo(sortB);
+      } else if (sortA != null) {
+        return -1;
+      } else if (sortB != null) {
+        return 1;
+      } else {
+        return Long.compare(a.getId(), b.getId());
+      }
+    });
+    // 递归排序子节点
+    for (OrganizationTreeNode node : nodes) {
+      if (node.getChildren() != null && !node.getChildren().isEmpty()) {
+        sortTree(node.getChildren());
+      }
+    }
   }
 }
 

@@ -2,6 +2,7 @@ package cn.skylark.permission.authorization.controller;
 
 import cn.skylark.permission.authorization.dto.OrganizationPageRequest;
 import cn.skylark.permission.authorization.dto.OrganizationResponseDTO;
+import cn.skylark.permission.authorization.dto.OrganizationTreeNode;
 import cn.skylark.permission.authorization.dto.UpdateOrganizationDTO;
 import cn.skylark.permission.authorization.entity.SysOrganization;
 import cn.skylark.permission.authorization.service.OrganizationService;
@@ -29,6 +30,17 @@ public class OrganizationController {
   @GetMapping
   public Ret<List<OrganizationResponseDTO>> list() {
     return Ret.data(organizationService.listDTO());
+  }
+
+  /**
+   * 获取组织树
+   *
+   * @param name 组织名称（模糊搜索，可选）
+   * @return 组织树
+   */
+  @GetMapping("/tree")
+  public Ret<List<OrganizationTreeNode>> tree(@RequestParam(required = false) String name) {
+    return Ret.data(organizationService.organizationTree(name));
   }
 
   /**

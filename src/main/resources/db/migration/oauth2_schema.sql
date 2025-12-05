@@ -342,3 +342,9 @@ CREATE TABLE IF NOT EXISTS `sys_resource` (
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统资源表';
 
+
+ALTER TABLE `sys_organization`
+  ADD COLUMN `tenant_id` BIGINT(20) DEFAULT NULL COMMENT '租户ID' AFTER `status`,
+  ADD KEY `idx_tenant_id` (`tenant_id`);
+UPDATE `sys_organization` SET `tenant_id` = 101 WHERE `tenant_id` IS NULL;
+
