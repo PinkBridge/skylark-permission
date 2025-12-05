@@ -1,5 +1,6 @@
 package cn.skylark.permission.authorization.service;
 
+import cn.skylark.permission.authorization.dto.OrganizationResponseDTO;
 import cn.skylark.permission.authorization.dto.UpdateUserDTO;
 import cn.skylark.permission.authorization.dto.UserPageRequest;
 import cn.skylark.permission.authorization.dto.UserResponseDTO;
@@ -22,6 +23,9 @@ public class UserService {
 
   @Resource
   private UserMapper userMapper;
+
+  @Resource
+  private OrganizationService organizationService;
 
   public SysUser get(Long id) {
     return userMapper.selectById(id);
@@ -194,6 +198,11 @@ public class UserService {
     }
     UserResponseDTO dto = new UserResponseDTO();
     BeanUtils.copyProperties(user, dto);
+    // 如果用户有组织ID，查询并填充组织信息
+    if (user.getOrgId() != null) {
+      OrganizationResponseDTO organization = organizationService.getDTO(user.getOrgId());
+      dto.setOrganization(organization);
+    }
     return dto;
   }
 }

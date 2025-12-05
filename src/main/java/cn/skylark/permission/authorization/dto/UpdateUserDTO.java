@@ -59,5 +59,10 @@ public class UpdateUserDTO {
    * 详细地址
    */
   private String address;
+
+  /**
+   * 组织ID
+   */
+  private Long orgId;
 }
 

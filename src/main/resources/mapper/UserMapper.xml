@@ -16,6 +16,7 @@
         <result column="city" property="city" jdbcType="VARCHAR"/>
         <result column="address" property="address" jdbcType="VARCHAR"/>
         <result column="tenant_id" property="tenantId" jdbcType="BIGINT"/>
+        <result column="org_id" property="orgId" jdbcType="BIGINT"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -29,7 +30,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, username, password, enabled, gender, avatar, phone, email, status, province, city, address, tenant_id, create_time, update_time
+        id, username, password, enabled, gender, avatar, phone, email, status, province, city, address, tenant_id, org_id, create_time, update_time
     </sql>
 
     <select id="findByUsername" resultMap="BaseResultMap">
@@ -55,9 +56,9 @@
     </select>
 
     <insert id="insert" parameterType="cn.skylark.permission.authorization.entity.SysUser" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO sys_user(username, password, enabled, gender, avatar, phone, email, status, province, city, address, tenant_id)
+        INSERT INTO sys_user(username, password, enabled, gender, avatar, phone, email, status, province, city, address, tenant_id, org_id)
         VALUES (#{username}, #{password}, COALESCE(#{enabled}, 1), #{gender}, #{avatar}, #{phone}, #{email}, 
-                COALESCE(#{status}, 'ACTIVE'), #{province}, #{city}, #{address}, #{tenantId})
+                COALESCE(#{status}, 'ACTIVE'), #{province}, #{city}, #{address}, #{tenantId}, #{orgId})
     </insert>
 
     <update id="update" parameterType="cn.skylark.permission.authorization.entity.SysUser">
@@ -73,7 +74,8 @@
             province = #{province},
             city = #{city},
             address = #{address},
-            tenant_id = #{tenantId}
+            tenant_id = #{tenantId},
+            org_id = #{orgId}
         WHERE id = #{id}
     </update>
 
@@ -180,7 +182,7 @@
             province = #{user.province},
             city = #{user.city},
             address = #{user.address},
-            tenant_id = #{user.tenantId}
+            org_id = #{user.orgId}
         WHERE id = #{userId}
     </update>
 

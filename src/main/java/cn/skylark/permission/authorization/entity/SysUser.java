@@ -78,6 +78,11 @@ public class SysUser {
   private Long tenantId;
 
   /**
+   * 组织ID
+   */
+  private Long orgId;
+
+  /**
    * 创建时间
    */
   private LocalDateTime createTime;

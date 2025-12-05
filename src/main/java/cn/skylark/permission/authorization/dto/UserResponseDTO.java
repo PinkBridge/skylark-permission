@@ -73,6 +73,16 @@ public class UserResponseDTO {
   private Long tenantId;
 
   /**
+   * 组织ID
+   */
+  private Long orgId;
+
+  /**
+   * 组织信息
+   */
+  private OrganizationResponseDTO organization;
+
+  /**
    * 创建时间
    */
   private LocalDateTime createTime;

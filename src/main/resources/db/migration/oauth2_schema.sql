@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
   `city` VARCHAR(50) DEFAULT NULL COMMENT '城市',
   `address` VARCHAR(255) DEFAULT NULL COMMENT '详细地址',
   `tenant_id` BIGINT(20) DEFAULT NULL COMMENT '租户ID',
+  `org_id` BIGINT(20) DEFAULT NULL COMMENT '组织ID',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -348,3 +349,10 @@ ALTER TABLE `sys_organization`
   ADD KEY `idx_tenant_id` (`tenant_id`);
 UPDATE `sys_organization` SET `tenant_id` = 101 WHERE `tenant_id` IS NULL;
 
+-- 为用户表增加组织ID字段
+ALTER TABLE `sys_user`
+  ADD COLUMN `org_id` BIGINT(20) DEFAULT NULL COMMENT '组织ID' AFTER `tenant_id`,
+  ADD KEY `idx_org_id` (`org_id`);
+
+-- 初始化现有数据的组织ID为1
+UPDATE `sys_user` SET `org_id` = 1 WHERE `org_id` IS NULL;
