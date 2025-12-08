@@ -55,6 +55,16 @@ public class MenuTreeNode {
   private Boolean hidden;
 
   /**
+   * 类型：菜单、按钮
+   */
+  private String type;
+
+  /**
+   * 权限标签
+   */
+  private String permlabel;
+
+  /**
    * 模块标识
    */
   private String moduleKey;

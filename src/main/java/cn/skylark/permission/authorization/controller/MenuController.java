@@ -58,12 +58,19 @@ public class MenuController {
   /**
    * 获取所有菜单树
    *
-   * @param name 菜单名称（模糊搜索，可选）
+   * @param name      菜单名称（模糊搜索，可选）
+   * @param permlabel 权限标签（模糊搜索，可选）
+   * @param moduleKey 模块标识（模糊搜索，可选）
+   * @param path      菜单路径（模糊搜索，可选）
    * @return 菜单树
    */
   @GetMapping("/tree")
-  public Ret<List<MenuTreeNode>> menuTree(@RequestParam(required = false) String name) {
-    return Ret.data(menuService.menuTree(name));
+  public Ret<List<MenuTreeNode>> menuTree(
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) String permlabel,
+      @RequestParam(required = false) String moduleKey,
+      @RequestParam(required = false) String path) {
+    return Ret.data(menuService.menuTree(name, permlabel, moduleKey, path));
   }
 
   /**
@@ -71,12 +78,18 @@ public class MenuController {
    *
    * @param authentication 认证信息
    * @param name           菜单名称（模糊搜索，可选）
+   * @param permlabel      权限标签（模糊搜索，可选）
+   * @param moduleKey      模块标识（模糊搜索，可选）
+   * @param path           菜单路径（模糊搜索，可选）
    * @return 菜单树
    */
   @GetMapping("/me/tree")
   public Ret<List<MenuTreeNode>> myMenuTree(Authentication authentication,
-                                             @RequestParam(required = false) String name) {
+                                             @RequestParam(required = false) String name,
+                                             @RequestParam(required = false) String permlabel,
+                                             @RequestParam(required = false) String moduleKey,
+                                             @RequestParam(required = false) String path) {
     String username = authentication.getName();
-    return Ret.data(menuService.userMenuTree(username, name));
+    return Ret.data(menuService.userMenuTree(username, name, permlabel, moduleKey, path));
   }
 }

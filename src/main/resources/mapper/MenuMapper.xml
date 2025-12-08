@@ -10,6 +10,8 @@
         <result column="icon" property="icon"/>
         <result column="sort" property="sort"/>
         <result column="hidden" property="hidden"/>
+        <result column="type" property="type"/>
+        <result column="permlabel" property="permlabel"/>
         <result column="module_key" property="moduleKey"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
@@ -23,7 +25,7 @@
     </select>
 
     <sql id="Base_Column_List">
-        id, parent_id, name, path, icon, sort, hidden, module_key, create_time, update_time
+        id, parent_id, name, path, icon, sort, hidden, type, permlabel, module_key, create_time, update_time
     </sql>
 
     <select id="selectAll" resultMap="MenuResult">
@@ -34,8 +36,8 @@
     </select>
 
     <insert id="insert" parameterType="cn.skylark.permission.authorization.entity.SysMenu">
-        INSERT INTO sys_menu(parent_id, name, path, icon, sort, hidden, module_key)
-        VALUES (#{parentId}, #{name}, #{path}, #{icon}, #{sort}, #{hidden}, #{moduleKey})
+        INSERT INTO sys_menu(parent_id, name, path, icon, sort, hidden, type, permlabel, module_key)
+        VALUES (#{parentId}, #{name}, #{path}, #{icon}, #{sort}, #{hidden}, #{type}, #{permlabel}, #{moduleKey})
     </insert>
 
     <update id="update" parameterType="cn.skylark.permission.authorization.entity.SysMenu">
@@ -46,6 +48,8 @@
             icon       = #{icon},
             sort       = #{sort},
             hidden     = #{hidden},
+            type       = #{type},
+            permlabel  = #{permlabel},
             module_key = #{moduleKey}
         WHERE id = #{id}
     </update>
@@ -58,6 +62,8 @@
             icon = #{menu.icon},
             sort = #{menu.sort},
             hidden = #{menu.hidden},
+            type = #{menu.type},
+            permlabel = #{menu.permlabel},
             module_key = #{menu.moduleKey}
         WHERE id = #{menuId}
     </update>

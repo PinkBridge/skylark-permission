@@ -101,13 +101,17 @@ public class MenuService {
   /**
    * 获取所有菜单树（不区分用户）
    *
-   * @param name 菜单名称（模糊搜索，可选）
+   * @param name      菜单名称（模糊搜索，可选）
+   * @param permlabel 权限标签（模糊搜索，可选）
+   * @param moduleKey 模块标识（模糊搜索，可选）
+   * @param path      菜单路径（模糊搜索，可选）
    * @return 菜单树
    */
-  public List<MenuTreeNode> menuTree(String name) {
+  public List<MenuTreeNode> menuTree(String name, String permlabel, String moduleKey, String path) {
     List<SysMenu> menus = menuMapper.selectAll();
-    if (StringUtils.hasText(name)) {
-      menus = filterMenusByName(menus, name);
+    if (StringUtils.hasText(name) || StringUtils.hasText(permlabel) || 
+        StringUtils.hasText(moduleKey) || StringUtils.hasText(path)) {
+      menus = filterMenus(menus, name, permlabel, moduleKey, path);
     }
     return buildTree(menus);
   }
@@ -115,26 +119,35 @@ public class MenuService {
   /**
    * 获取当前用户的菜单树
    *
-   * @param username 用户名
-   * @param name     菜单名称（模糊搜索，可选）
+   * @param username  用户名
+   * @param name      菜单名称（模糊搜索，可选）
+   * @param permlabel 权限标签（模糊搜索，可选）
+   * @param moduleKey 模块标识（模糊搜索，可选）
+   * @param path      菜单路径（模糊搜索，可选）
    * @return 菜单树
    */
-  public List<MenuTreeNode> userMenuTree(String username, String name) {
+  public List<MenuTreeNode> userMenuTree(String username, String name, String permlabel, 
+                                          String moduleKey, String path) {
     List<SysMenu> menus = menuMapper.selectMenusByUsername(username);
-    if (StringUtils.hasText(name)) {
-      menus = filterMenusByName(menus, name);
+    if (StringUtils.hasText(name) || StringUtils.hasText(permlabel) || 
+        StringUtils.hasText(moduleKey) || StringUtils.hasText(path)) {
+      menus = filterMenus(menus, name, permlabel, moduleKey, path);
     }
     return buildTree(menus);
   }
 
   /**
-   * 根据名称过滤菜单，并保留树结构（包含匹配节点的所有父节点和子节点）
+   * 根据多个字段过滤菜单，并保留树结构（包含匹配节点的所有父节点和子节点）
    *
-   * @param menus 菜单列表
-   * @param name  搜索名称
+   * @param menus    菜单列表
+   * @param name      菜单名称（模糊搜索，可选）
+   * @param permlabel 权限标签（模糊搜索，可选）
+   * @param moduleKey 模块标识（模糊搜索，可选）
+   * @param path      菜单路径（模糊搜索，可选）
    * @return 过滤后的菜单列表
    */
-  private List<SysMenu> filterMenusByName(List<SysMenu> menus, String name) {
+  private List<SysMenu> filterMenus(List<SysMenu> menus, String name, String permlabel, 
+                                     String moduleKey, String path) {
     if (menus == null || menus.isEmpty()) {
       return menus;
     }
@@ -145,10 +158,32 @@ public class MenuService {
       menuMap.put(menu.getId(), menu);
     }
 
-    // 找出名称匹配的菜单
+    // 找出匹配的菜单（任一字段匹配即可）
     Set<Long> matchedMenuIds = new HashSet<>();
     for (SysMenu menu : menus) {
-      if (menu.getName() != null && menu.getName().contains(name)) {
+      boolean matched = false;
+      
+      // 检查名称
+      if (StringUtils.hasText(name) && menu.getName() != null && menu.getName().contains(name)) {
+        matched = true;
+      }
+      // 检查权限标签
+      if (!matched && StringUtils.hasText(permlabel) && menu.getPermlabel() != null && 
+          menu.getPermlabel().contains(permlabel)) {
+        matched = true;
+      }
+      // 检查模块标识
+      if (!matched && StringUtils.hasText(moduleKey) && menu.getModuleKey() != null && 
+          menu.getModuleKey().contains(moduleKey)) {
+        matched = true;
+      }
+      // 检查路径
+      if (!matched && StringUtils.hasText(path) && menu.getPath() != null && 
+          menu.getPath().contains(path)) {
+        matched = true;
+      }
+      
+      if (matched) {
         matchedMenuIds.add(menu.getId());
       }
     }
@@ -271,6 +306,8 @@ public class MenuService {
     n.setIcon(m.getIcon());
     n.setSort(m.getSort());
     n.setHidden(m.getHidden());
+    n.setType(m.getType());
+    n.setPermlabel(m.getPermlabel());
     n.setModuleKey(m.getModuleKey());
     n.setCreateTime(m.getCreateTime());
     n.setUpdateTime(m.getUpdateTime());
@@ -323,6 +360,8 @@ public class MenuService {
     dto.setName(menu.getName());
     dto.setPath(menu.getPath());
     dto.setIcon(menu.getIcon());
+    dto.setType(menu.getType());
+    dto.setPermlabel(menu.getPermlabel());
     dto.setModuleKey(menu.getModuleKey());
     return dto;
   }

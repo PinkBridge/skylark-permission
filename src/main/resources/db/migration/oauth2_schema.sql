@@ -143,6 +143,8 @@ CREATE TABLE IF NOT EXISTS `sys_menu` (
   `icon` VARCHAR(100) DEFAULT NULL,
   `sort` INT DEFAULT 0,
   `hidden` TINYINT(1) DEFAULT 0,
+  `type` VARCHAR(20) DEFAULT '菜单' COMMENT '类型：菜单、按钮',
+  `permlabel` VARCHAR(100) DEFAULT NULL COMMENT '权限标签',
   `module_key` VARCHAR(100) DEFAULT NULL,
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -348,6 +350,17 @@ ALTER TABLE `sys_organization`
   ADD COLUMN `tenant_id` BIGINT(20) DEFAULT NULL COMMENT '租户ID' AFTER `status`,
   ADD KEY `idx_tenant_id` (`tenant_id`);
 UPDATE `sys_organization` SET `tenant_id` = 101 WHERE `tenant_id` IS NULL;
+
+-- 为菜单表增加类型字段
+ALTER TABLE `sys_menu`
+  ADD COLUMN `type` VARCHAR(20) DEFAULT 'menu' COMMENT '类型：菜单、按钮' AFTER `hidden`;
+
+-- 初始化现有菜单数据的类型为"菜单"
+UPDATE `sys_menu` SET `type` = 'menu' WHERE `type` IS NULL;
+
+-- 为菜单表增加权限标签字段
+ALTER TABLE `sys_menu`
+  ADD COLUMN `permlabel` VARCHAR(100) DEFAULT NULL COMMENT '权限标签' AFTER `type`;
 
 -- 为用户表增加组织ID字段
 ALTER TABLE `sys_user`
