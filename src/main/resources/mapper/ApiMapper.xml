@@ -133,6 +133,22 @@
         </foreach>
     </insert>
 
+    <select id="existsRoleApiBinding" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_role_api
+        WHERE role_id = #{roleId} AND api_id = #{apiId}
+    </select>
+
+    <delete id="deleteRoleApiBinding">
+        DELETE FROM sys_role_api
+        WHERE role_id = #{roleId} AND api_id = #{apiId}
+    </delete>
+
+    <insert id="insertRoleApiBinding">
+        INSERT INTO sys_role_api(role_id, api_id)
+        VALUES (#{roleId}, #{apiId})
+    </insert>
+
     <select id="selectByRoleNames" resultMap="ApiResult">
         SELECT DISTINCT a.*
         FROM sys_api a

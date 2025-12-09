@@ -3,6 +3,7 @@ package cn.skylark.permission.authorization.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 角色响应DTO
@@ -36,5 +37,15 @@ public class RoleResponseDTO {
    * 更新时间
    */
   private LocalDateTime updateTime;
+
+  /**
+   * 关联的API ID数组
+   */
+  private List<Long> apiIds;
+
+  /**
+   * 关联的菜单ID数组
+   */
+  private List<Long> menuIds;
 }
 

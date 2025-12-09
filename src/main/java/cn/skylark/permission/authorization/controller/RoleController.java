@@ -1,5 +1,6 @@
 package cn.skylark.permission.authorization.controller;
 
+import cn.skylark.permission.authorization.dto.MenuIdsDTO;
 import cn.skylark.permission.authorization.dto.RolePageRequest;
 import cn.skylark.permission.authorization.dto.RoleResponseDTO;
 import cn.skylark.permission.authorization.dto.UpdateRoleDTO;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yaomianwei
@@ -110,5 +112,37 @@ public class RoleController {
   public Ret<Void> bindApis(@PathVariable Long id, @RequestBody List<Long> apiIds) {
     roleService.bindApis(id, apiIds);
     return Ret.ok();
+  }
+
+  /**
+   * 切换角色和API的关联状态
+   * 如果关联不存在则添加，如果存在则删除
+   *
+   * @param roleId 角色ID
+   * @param apiId  API ID
+   * @return 操作结果，true-添加了关联，false-删除了关联
+   */
+  @PostMapping("/{roleId}/apis/{apiId}:toggle")
+  public Ret<Boolean> toggleRoleApi(@PathVariable Long roleId, @PathVariable Long apiId) {
+    boolean added = apiService.toggleRoleApiBinding(roleId, apiId);
+    return Ret.data(added);
+  }
+
+  /**
+   * 批量切换角色和菜单的关联状态
+   * 对于每个菜单ID，如果关联不存在则添加，如果存在则删除
+   *
+   * @param roleId  角色ID
+   * @param request 请求体，包含菜单ID数组，格式：{"menuIds": [11, 12, 13]}
+   * @return 操作结果，key为菜单ID，value为true表示添加了关联，false表示删除了关联
+   */
+  @PostMapping("/{roleId}/menus:toggle")
+  public Ret<Map<Long, Boolean>> toggleRoleMenus(@PathVariable Long roleId,
+                                                 @RequestBody MenuIdsDTO request) {
+    if (request == null || request.getMenuIds() == null || request.getMenuIds().isEmpty()) {
+      return Ret.fail(400, "menuIds.required");
+    }
+    Map<Long, Boolean> results = menuService.toggleRoleMenuBindings(roleId, request.getMenuIds());
+    return Ret.data(results);
   }
 }

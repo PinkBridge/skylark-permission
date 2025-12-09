@@ -71,7 +71,21 @@ public class RoleService {
    */
   public RoleResponseDTO getDTO(Long id) {
     SysRole role = roleMapper.selectById(id);
-    return role != null ? convertToDTO(role) : null;
+    if (role == null) {
+      return null;
+    }
+    RoleResponseDTO dto = convertToDTO(role);
+    // 获取关联的菜单ID数组
+    List<Long> menuIds = menuService.listByRole(id).stream()
+        .map(menu -> menu.getId())
+        .collect(Collectors.toList());
+    dto.setMenuIds(menuIds);
+    // 获取关联的API ID数组
+    List<Long> apiIds = apiService.listByRole(id).stream()
+        .map(api -> api.getId())
+        .collect(Collectors.toList());
+    dto.setApiIds(apiIds);
+    return dto;
   }
 
   /**

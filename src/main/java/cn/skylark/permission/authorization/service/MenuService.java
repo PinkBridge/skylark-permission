@@ -51,6 +51,34 @@ public class MenuService {
   }
 
   /**
+   * 批量切换角色和菜单的关联状态
+   * 对于每个菜单ID，如果关联不存在则添加，如果存在则删除
+   *
+   * @param roleId  角色ID
+   * @param menuIds 菜单ID数组
+   * @return 操作结果，key为菜单ID，value为true表示添加了关联，false表示删除了关联
+   */
+  public Map<Long, Boolean> toggleRoleMenuBindings(Long roleId, List<Long> menuIds) {
+    Map<Long, Boolean> results = new HashMap<>();
+    if (menuIds == null || menuIds.isEmpty()) {
+      return results;
+    }
+    for (Long menuId : menuIds) {
+      int exists = menuMapper.existsRoleMenuBinding(roleId, menuId);
+      if (exists > 0) {
+        // 存在关联，删除
+        menuMapper.deleteRoleMenuBinding(roleId, menuId);
+        results.put(menuId, false);
+      } else {
+        // 不存在关联，添加
+        menuMapper.insertRoleMenuBinding(roleId, menuId);
+        results.put(menuId, true);
+      }
+    }
+    return results;
+  }
+
+  /**
    * 获取菜单列表（DTO）
    *
    * @return 菜单列表

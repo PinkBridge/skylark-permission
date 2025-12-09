@@ -96,6 +96,22 @@
         </foreach>
     </insert>
 
+    <select id="existsRoleMenuBinding" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_role_menu
+        WHERE role_id = #{roleId} AND menu_id = #{menuId}
+    </select>
+
+    <delete id="deleteRoleMenuBinding">
+        DELETE FROM sys_role_menu
+        WHERE role_id = #{roleId} AND menu_id = #{menuId}
+    </delete>
+
+    <insert id="insertRoleMenuBinding">
+        INSERT INTO sys_role_menu(role_id, menu_id)
+        VALUES (#{roleId}, #{menuId})
+    </insert>
+
     <select id="selectMenusByUsername" parameterType="string" resultMap="MenuResult">
         SELECT m.*
         FROM sys_menu m

@@ -24,6 +24,33 @@ public interface MenuMapper {
 
   int bindRoleMenus(@Param("roleId") Long roleId, @Param("menuIds") List<Long> menuIds);
 
+  /**
+   * 检查角色和菜单的关联是否存在
+   *
+   * @param roleId 角色ID
+   * @param menuId 菜单ID
+   * @return 存在返回1，不存在返回0
+   */
+  int existsRoleMenuBinding(@Param("roleId") Long roleId, @Param("menuId") Long menuId);
+
+  /**
+   * 删除角色和菜单的单个关联
+   *
+   * @param roleId 角色ID
+   * @param menuId 菜单ID
+   * @return 删除行数
+   */
+  int deleteRoleMenuBinding(@Param("roleId") Long roleId, @Param("menuId") Long menuId);
+
+  /**
+   * 插入角色和菜单的单个关联
+   *
+   * @param roleId 角色ID
+   * @param menuId 菜单ID
+   * @return 插入行数
+   */
+  int insertRoleMenuBinding(@Param("roleId") Long roleId, @Param("menuId") Long menuId);
+
   List<SysMenu> selectMenusByUsername(@Param("username") String username);
 
   /**

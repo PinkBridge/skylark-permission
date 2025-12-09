@@ -24,6 +24,33 @@ public interface ApiMapper {
 
   int bindRoleApis(@Param("roleId") Long roleId, @Param("apiIds") List<Long> apiIds);
 
+  /**
+   * 检查角色和API的关联是否存在
+   *
+   * @param roleId 角色ID
+   * @param apiId  API ID
+   * @return 存在返回1，不存在返回0
+   */
+  int existsRoleApiBinding(@Param("roleId") Long roleId, @Param("apiId") Long apiId);
+
+  /**
+   * 删除角色和API的单个关联
+   *
+   * @param roleId 角色ID
+   * @param apiId  API ID
+   * @return 删除行数
+   */
+  int deleteRoleApiBinding(@Param("roleId") Long roleId, @Param("apiId") Long apiId);
+
+  /**
+   * 插入角色和API的单个关联
+   *
+   * @param roleId 角色ID
+   * @param apiId  API ID
+   * @return 插入行数
+   */
+  int insertRoleApiBinding(@Param("roleId") Long roleId, @Param("apiId") Long apiId);
+
   int countByRoleNamesAndApi(@Param("roleNames") List<String> roleNames,
                              @Param("method") String method,
                              @Param("path") String path,

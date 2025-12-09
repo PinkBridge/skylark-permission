@@ -54,6 +54,27 @@ public class ApiService {
     }
   }
 
+  /**
+   * 切换角色和API的关联状态
+   * 如果关联不存在则添加，如果存在则删除
+   *
+   * @param roleId 角色ID
+   * @param apiId  API ID
+   * @return true-添加了关联，false-删除了关联
+   */
+  public boolean toggleRoleApiBinding(Long roleId, Long apiId) {
+    int exists = apiMapper.existsRoleApiBinding(roleId, apiId);
+    if (exists > 0) {
+      // 存在关联，删除
+      apiMapper.deleteRoleApiBinding(roleId, apiId);
+      return false;
+    } else {
+      // 不存在关联，添加
+      apiMapper.insertRoleApiBinding(roleId, apiId);
+      return true;
+    }
+  }
+
   public boolean isApiBoundToRoles(List<String> roleNames, String method, String path) {
     return isApiBoundToRolesInternal(roleNames, method, path, null);
   }
