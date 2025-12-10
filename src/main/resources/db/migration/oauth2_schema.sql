@@ -170,10 +170,12 @@ CREATE TABLE IF NOT EXISTS `sys_role` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL,
   `remark` VARCHAR(255) DEFAULT NULL,
+  `tenant_id` BIGINT(20) DEFAULT NULL COMMENT '租户ID',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_role_name` (`name`)
+  UNIQUE KEY `uk_role_name` (`name`),
+  KEY `idx_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统角色';
 
 CREATE TABLE IF NOT EXISTS `sys_user_role` (
@@ -369,3 +371,11 @@ ALTER TABLE `sys_user`
 
 -- 初始化现有数据的组织ID为1
 UPDATE `sys_user` SET `org_id` = 1 WHERE `org_id` IS NULL;
+
+-- 为角色表增加租户ID字段
+ALTER TABLE `sys_role`
+  ADD COLUMN `tenant_id` BIGINT(20) DEFAULT NULL COMMENT '租户ID' AFTER `remark`,
+  ADD KEY `idx_tenant_id_role` (`tenant_id`);
+
+-- 初始化现有角色数据的租户ID为1
+UPDATE `sys_role` SET `tenant_id` = 1 WHERE `tenant_id` IS NULL;

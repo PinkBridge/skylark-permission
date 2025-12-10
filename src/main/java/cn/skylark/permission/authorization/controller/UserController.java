@@ -1,6 +1,7 @@
 package cn.skylark.permission.authorization.controller;
 
 import cn.skylark.permission.authorization.dto.ChangePasswordDTO;
+import cn.skylark.permission.authorization.dto.CreateUserDTO;
 import cn.skylark.permission.authorization.dto.UpdateUserDTO;
 import cn.skylark.permission.authorization.dto.UserDTO;
 import cn.skylark.permission.authorization.dto.UserPageRequest;
@@ -112,8 +113,12 @@ public class UserController {
   }
 
   @PostMapping
-  public Ret<Integer> create(@RequestBody SysUser user) {
-    return Ret.data(userService.create(user));
+  public Ret<Long> create(@RequestBody CreateUserDTO dto) {
+    Long userId = userService.createWithRoles(dto);
+    if (userId == null) {
+      return Ret.fail(500, "user.create.failed");
+    }
+    return Ret.data(userId);
   }
 
   @PutMapping("/{id}")

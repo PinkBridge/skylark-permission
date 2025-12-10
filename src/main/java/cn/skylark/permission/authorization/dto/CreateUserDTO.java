@@ -5,17 +5,22 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 更新用户信息DTO（不包含密码）
+ * 创建用户DTO（包含角色ID数组）
  *
  * @author yaomianwei
  * @since 2025/11/3
  */
 @Data
-public class UpdateUserDTO {
+public class CreateUserDTO {
   /**
    * 用户名
    */
   private String username;
+
+  /**
+   * 密码
+   */
+  private String password;
 
   /**
    * 是否启用：1-启用，0-禁用
@@ -68,7 +73,7 @@ public class UpdateUserDTO {
   private Long orgId;
 
   /**
-   * 角色ID数组（如果提供，会先删除原有关联，再新增关联）
+   * 角色ID数组
    */
   private List<Long> roleIds;
 }

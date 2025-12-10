@@ -54,8 +54,8 @@ public class TenantInterceptor implements Interceptor {
   private static final String[] TENANT_TABLES = {
       "sys_user",
       "sys_resource",
-      "sys_organization"
-      // "sys_role",
+      "sys_organization",
+      "sys_role"
       // "sys_menu",
       // "sys_api"
   };

@@ -6,12 +6,13 @@
         <id column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="remark" property="remark"/>
+        <result column="tenant_id" property="tenantId"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, name, remark, create_time, update_time
+        id, name, remark, tenant_id, create_time, update_time
     </sql>
 
     <select id="selectById" parameterType="long" resultMap="RoleResult">
@@ -77,14 +78,15 @@
     </select>
 
     <insert id="insert" parameterType="cn.skylark.permission.authorization.entity.SysRole">
-        INSERT INTO sys_role(name, remark)
-        VALUES (#{name}, #{remark})
+        INSERT INTO sys_role(name, remark, tenant_id)
+        VALUES (#{name}, #{remark}, #{tenantId})
     </insert>
 
     <update id="update" parameterType="cn.skylark.permission.authorization.entity.SysRole">
         UPDATE sys_role
         SET name   = #{name},
-            remark = #{remark}
+            remark = #{remark},
+            tenant_id = #{tenantId}
         WHERE id = #{id}
     </update>
 

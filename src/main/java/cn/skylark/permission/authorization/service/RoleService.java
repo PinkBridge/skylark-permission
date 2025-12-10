@@ -1,5 +1,6 @@
 package cn.skylark.permission.authorization.service;
 
+import cn.skylark.permission.authorization.context.TenantContext;
 import cn.skylark.permission.authorization.dto.RolePageRequest;
 import cn.skylark.permission.authorization.dto.RoleResponseDTO;
 import cn.skylark.permission.authorization.dto.UpdateRoleDTO;
@@ -34,6 +35,9 @@ public class RoleService {
   }
 
   public int create(SysRole role) {
+    if (role.getTenantId() == null) {
+      role.setTenantId(TenantContext.getTenantId());
+    }
     return roleMapper.insert(role);
   }
 

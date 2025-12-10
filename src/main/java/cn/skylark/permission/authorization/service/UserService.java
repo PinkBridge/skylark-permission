@@ -1,5 +1,7 @@
 package cn.skylark.permission.authorization.service;
 
+import cn.skylark.permission.authorization.context.TenantContext;
+import cn.skylark.permission.authorization.dto.CreateUserDTO;
 import cn.skylark.permission.authorization.dto.OrganizationResponseDTO;
 import cn.skylark.permission.authorization.dto.UpdateUserDTO;
 import cn.skylark.permission.authorization.dto.UserPageRequest;
@@ -47,6 +49,45 @@ public class UserService {
 
   public int create(SysUser user) {
     return userMapper.insert(user);
+  }
+
+  /**
+   * 创建用户（包含角色关联）
+   *
+   * @param dto 创建用户DTO
+   * @return 创建的用户ID
+   */
+  public Long createWithRoles(CreateUserDTO dto) {
+    // 创建用户实体
+    SysUser user = new SysUser();
+    user.setUsername(dto.getUsername());
+    user.setPassword(dto.getPassword());
+    user.setEnabled(dto.getEnabled());
+    user.setGender(dto.getGender());
+    user.setAvatar(dto.getAvatar());
+    user.setPhone(dto.getPhone());
+    user.setEmail(dto.getEmail());
+    user.setStatus(dto.getStatus());
+    user.setProvince(dto.getProvince());
+    user.setCity(dto.getCity());
+    user.setAddress(dto.getAddress());
+    user.setOrgId(dto.getOrgId());
+    
+    // 自动设置租户ID（如果未提供）
+    if (user.getTenantId() == null) {
+      user.setTenantId(TenantContext.getTenantId());
+    }
+    
+    // 插入用户
+    int result = userMapper.insert(user);
+    if (result > 0 && user.getId() != null) {
+      // 如果提供了角色ID数组，绑定角色
+      if (!CollectionUtils.isEmpty(dto.getRoleIds())) {
+        bindRoles(user.getId(), dto.getRoleIds());
+      }
+      return user.getId();
+    }
+    return null;
   }
 
   public int update(SysUser user) {
@@ -183,7 +224,12 @@ public class UserService {
    * @return 更新行数
    */
   public int updateUserInfo(Long userId, UpdateUserDTO dto) {
-    return userMapper.updateUserInfo(userId, dto);
+    int result = userMapper.updateUserInfo(userId, dto);
+    // 如果提供了角色ID数组，更新角色关联（先删除原有关联，再新增关联）
+    if (result > 0 && !CollectionUtils.isEmpty(dto.getRoleIds())) {
+      bindRoles(userId, dto.getRoleIds());
+    }
+    return result;
   }
 
   /**
